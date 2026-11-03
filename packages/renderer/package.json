@@ -1,0 +1,24 @@
+{
+  "name": "@aoe/renderer",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Terminal rendering engine and screen orchestrator for AOE",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aoe/components": "workspace:*",
+    "@aoe/themes": "workspace:*"
+  }
+}

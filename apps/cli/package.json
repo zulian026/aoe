@@ -1,0 +1,30 @@
+{
+  "name": "@aoe/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Command-line interface for the AOE presentation engine",
+  "bin": {
+    "aoe": "./dist/bin.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aoe/adapters": "workspace:*",
+    "@aoe/core": "workspace:*",
+    "@aoe/protocol": "workspace:*",
+    "@aoe/themes": "workspace:*",
+    "commander": "^13.1.0"
+  }
+}

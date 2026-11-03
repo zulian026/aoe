@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build artifacts
+dist/
+build/
+*.tsbuildinfo
+
+# Test and coverage
+coverage/
+.vitest/
+
+# Logs and system
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.DS_Store
+*.local
+
+# Environment
+.env
+.env.*
+!.env.example

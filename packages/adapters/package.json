@@ -1,0 +1,23 @@
+{
+  "name": "@aoe/adapters",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Agent ingestion adapters converting CLI/agent telemetry to AOE Universal Protocol",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aoe/protocol": "workspace:*"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@aoe/components",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Terminal UI components for AOE presentation",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aoe/themes": "workspace:*"
+  }
+}
