@@ -3,7 +3,7 @@ import { Box, Text } from 'ink';
 import type { AoeTheme } from '@aoe/themes';
 import { StatusIndicator, type StatusType } from './StatusIndicator.js';
 import { resolveThemeColor, getSymbol } from './utils/theme-resolver.js';
-import { formatDuration, clamp } from './utils/sanitize.js';
+import { formatDuration, clamp, maskSecrets, sanitizeTerminalText } from './utils/sanitize.js';
 import { useTheme } from './theme-context.js';
 
 export interface TaskSummaryItem {
@@ -133,7 +133,7 @@ export const TaskSummary: React.FC<TaskSummaryProps> = ({
               noColor={noColor}
               unicode={unicode}
             />
-            <Text bold={depth === 0}> {item.name}</Text>
+            <Text bold={depth === 0}> {sanitizeTerminalText(maskSecrets(item.name))}</Text>
             {progressText ? <Text color={mutedColor}>{progressText}</Text> : null}
             {durationText ? <Text color={mutedColor}>{durationText}</Text> : null}
           </Box>

@@ -1,16 +1,16 @@
 # AOE Project Progress & Milestone Tracker
 
-| Milestone | Title                        | Target Scope                                                                        | Status        | Evidence / Verification           |
-| :-------- | :--------------------------- | :---------------------------------------------------------------------------------- | :------------ | :-------------------------------- |
-| **M00**   | **Repository Foundation**    | Workspace setup, TS, Vitest, ESLint, Prettier, package boundaries, docs             | **Completed** | Commit `e925d97`                  |
-| **M01**   | **AOE Skill**                | Standalone instruction system, native fallback, hierarchy, tables, error formatting | **Completed** | Commit `abe5d7d`                  |
-| **M02**   | **Universal Event Protocol** | Versioned JSONL event schemas, envelopes, Zod validation                            | **Completed** | Commit `35974e9`                  |
-| **M03**   | **Core Engine**              | Event stream processing, session manager, state machine, lifecycle                  | **Completed** | Commit `d783235`                  |
-| **M04**   | **Terminal Renderer**        | Ink components, terminal screen manager, alternate screen buffer                    | **Completed** | Commit `dfa757f`                  |
-| **M05**   | **Theme Engine**             | Theme registry, Obsidian dark, light, high-contrast, custom tokens, resolver        | **Completed** | 208 tests passing across monorepo |
-| **M06**   | **Agent Integration**        | Adapters for Codex, Claude Code, Gemini CLI, OpenCode, generic stream               | **Completed** | 251 tests passing across monorepo |
-| **M07**   | **CLI Tooling**              | `aoe` commands (`render`, `pipe`, `theme`, `doctor`, `skill`)                       | **Completed** | 303 tests passing across monorepo |
-| **M08**   | **Release Preparation**      | Packaging, end-to-end verification, performance profiling, release                  | Pending       | Recommended next milestone        |
+| Milestone | Title                        | Target Scope                                                                         | Status        | Evidence / Verification           |
+| :-------- | :--------------------------- | :----------------------------------------------------------------------------------- | :------------ | :-------------------------------- |
+| **M00**   | **Repository Foundation**    | Workspace setup, TS, Vitest, ESLint, Prettier, package boundaries, docs              | **Completed** | Commit `e925d97`                  |
+| **M01**   | **AOE Skill**                | Standalone instruction system, native fallback, hierarchy, tables, error formatting  | **Completed** | Commit `abe5d7d`                  |
+| **M02**   | **Universal Event Protocol** | Versioned JSONL event schemas, envelopes, Zod validation                             | **Completed** | Commit `35974e9`                  |
+| **M03**   | **Core Engine**              | Event stream processing, session manager, state machine, lifecycle                   | **Completed** | Commit `d783235`                  |
+| **M04**   | **Terminal Renderer**        | Ink components, terminal screen manager, alternate screen buffer                     | **Completed** | Commit `dfa757f`                  |
+| **M05**   | **Theme Engine**             | Theme registry, Obsidian dark, light, high-contrast, custom tokens, resolver         | **Completed** | 208 tests passing across monorepo |
+| **M06**   | **Agent Integration**        | Adapters for Codex, Claude Code, Gemini CLI, OpenCode, generic stream                | **Completed** | 251 tests passing across monorepo |
+| **M07**   | **CLI Tooling**              | `aoe` commands (`render`, `pipe`, `theme`, `doctor`, `skill`)                        | **Completed** | Commit `8f90872`                  |
+| **M08**   | **Release Readiness**        | Hardening, packaging, clean installation, benchmark, security testing, OSS readiness | **Completed** | 323 tests passing across monorepo |
 
 ---
 
@@ -187,3 +187,32 @@
     - `cli-integration.md`: Integration guide for Claude Code, Gemini CLI, UNIX pipes, and CI/CD pipelines.
   - Test suite: 47 test files, 303 passing tests across the monorepo (10 test files and 53 tests in `apps/cli` including real subprocess execution tests).
 - **Verification**: 100% test pass rate, clean TypeScript build, clean typecheck, clean linting (0 errors, 0 warnings), clean formatting.
+
+### M08: Production Hardening, Packaging & Release Readiness
+
+- **Goal**: Harden production security, verify streaming and memory boundaries, package distributable npm tarballs, establish performance baselines, complete open-source documentation, and ensure clean installation readiness.
+- **Status**: Completed.
+- **Deliverables**:
+  - **Security & Sanitization**:
+    - Defense-in-depth terminal text sanitization stripping OSC, DCS, APC, PM, and dangerous CSI sequences while preserving valid SGR styling.
+    - Trojan Source Unicode bidirectional override suppression (`U+202A`–`U+202E`, `U+2066`–`U+2069`).
+    - Expanded credential masking (Bearer, OpenAI, Anthropic, Google AI, AWS, GitHub PATs, Slack, PEM private keys).
+    - Private reasoning suppression (`<thought>`, `<scratchpad>`, `<antThinking>`, `<internal_reasoning>`).
+  - **Input & Memory Bounds**:
+    - Per-record size validation in `parseEventStream` (default 5MB) preventing buffer bloat.
+    - Total stream ceiling (50MB) in `readStreamChunks`.
+  - **CLI Diagnostic JSON**:
+    - Machine-readable `--json` flag on `aoe doctor` emitting pure JSON to stdout and diagnostics to stderr.
+  - **Packaging & Clean Installation**:
+    - Package metadata (`files`, `license`, `repository`, `engines`, `keywords`) configured across all monorepo packages.
+    - Automatic packaging of `skills/aoe` into `@aoe/cli` package tarball.
+    - Verified clean installation from packed tarballs in fresh external directory executing all CLI commands.
+  - **Performance Baseline**:
+    - Reproducible benchmark script (`scripts/benchmark.js` / `pnpm benchmark`).
+    - Recorded baseline metrics for CLI startup time, JSONL parsing throughput, Core Engine ingestion rate, StaticRenderer throughput, and memory delta.
+  - **Open Source Readiness**:
+    - `README.md`, `LICENSE` (MIT), `CHANGELOG.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`.
+    - `.github/ISSUE_TEMPLATE/bug_report.md`, `feature_request.md`, `PULL_REQUEST_TEMPLATE.md`.
+    - `.github/workflows/ci.yml` and `release.yml`.
+  - **Test Suite**: 48 test files, 323 passing tests across the monorepo (including dedicated security and subprocess tests).
+- **Verification**: 100% test pass rate, clean TypeScript build, clean typecheck, clean linting (0 errors, 0 warnings), clean formatting, clean installation verified.

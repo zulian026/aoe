@@ -8,6 +8,15 @@ export default tseslint.config(
     ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**', '**/*.d.ts'],
   },
   {
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        Buffer: 'readonly',
+        global: 'readonly',
+        performance: 'readonly',
+      },
+    },
     rules: {
       '@typescript-eslint/no-unused-vars': [
         'error',

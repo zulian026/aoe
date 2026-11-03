@@ -3,6 +3,29 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Terminal UI components for AOE presentation",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aoe-dev/aoe.git",
+    "directory": "packages/components"
+  },
+  "homepage": "https://github.com/aoe-dev/aoe#readme",
+  "bugs": "https://github.com/aoe-dev/aoe/issues",
+  "keywords": [
+    "aoe",
+    "components",
+    "terminal",
+    "ink",
+    "react"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

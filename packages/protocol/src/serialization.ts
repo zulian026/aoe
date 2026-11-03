@@ -6,12 +6,13 @@ export interface SerializeOptions {
 }
 
 export class ProtocolError extends Error {
-  public readonly code: 'JSON_SYNTAX_ERROR' | 'VALIDATION_ERROR' | 'EMPTY_LINE_ERROR';
+  public readonly code:
+    'JSON_SYNTAX_ERROR' | 'VALIDATION_ERROR' | 'EMPTY_LINE_ERROR' | 'BUFFER_OVERFLOW';
   public readonly details?: unknown;
   public readonly rawInput?: string;
 
   constructor(
-    code: 'JSON_SYNTAX_ERROR' | 'VALIDATION_ERROR' | 'EMPTY_LINE_ERROR',
+    code: 'JSON_SYNTAX_ERROR' | 'VALIDATION_ERROR' | 'EMPTY_LINE_ERROR' | 'BUFFER_OVERFLOW',
     message: string,
     options?: { details?: unknown; rawInput?: string; cause?: unknown },
   ) {
@@ -127,7 +128,10 @@ export function parseEvent(line: string): AoeEvent {
 export interface ParseStreamOptions {
   onError?: (error: ProtocolError, rawLine: string) => void;
   skipMalformed?: boolean;
+  maxLineLengthBytes?: number;
 }
+
+const DEFAULT_MAX_RECORD_BYTES = 5 * 1024 * 1024; // 5 MB per record
 
 /**
  * Asynchronously parses a stream of string chunks into validated AOE events,
@@ -137,10 +141,29 @@ export async function* parseEventStream(
   chunks: AsyncIterable<string> | Iterable<string>,
   options: ParseStreamOptions = {},
 ): AsyncGenerator<AoeEvent, void, unknown> {
+  const maxLineLength = options.maxLineLengthBytes ?? DEFAULT_MAX_RECORD_BYTES;
   let buffer = '';
 
   for await (const chunk of chunks) {
     buffer += chunk;
+
+    if (buffer.length > maxLineLength && !buffer.includes('\n')) {
+      const excess = buffer.length;
+      buffer = '';
+      const err = new ProtocolError(
+        'BUFFER_OVERFLOW',
+        `Event line exceeded maximum allowed record size of ${maxLineLength} bytes (received ${excess} bytes without newline).`,
+        { rawInput: `[${excess} bytes omitted]` },
+      );
+      if (options.onError) {
+        options.onError(err, `[${excess} bytes omitted]`);
+      }
+      if (!options.skipMalformed) {
+        throw err;
+      }
+      continue;
+    }
+
     const lines = buffer.split('\n');
     // The last element is either an incomplete line or empty string if chunk ended with \n
     buffer = lines.pop() ?? '';

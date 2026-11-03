@@ -1,6 +1,6 @@
 import type { SessionSnapshot, TaskSnapshot } from '@aoe/core';
 import { OBSIDIAN_THEME, type AoeTheme, type ThemeDefinition } from '@aoe/themes';
-import { formatDuration, maskSecrets, stripAnsi } from '@aoe/components';
+import { formatDuration, maskSecrets, stripAnsi, sanitizeTerminalText } from '@aoe/components';
 import { supportsColor, isNoColor } from './environment.js';
 
 export interface StaticRendererOptions {
@@ -120,7 +120,9 @@ export class StaticRenderer {
 
     // Write formatted lines to stream
     for (const line of lines) {
-      const sanitized = this.noColor ? stripAnsi(maskSecrets(line)) : maskSecrets(line);
+      const sanitized = this.noColor
+        ? stripAnsi(maskSecrets(line))
+        : sanitizeTerminalText(maskSecrets(line));
       this.stream.write(`${sanitized}\n`);
     }
   }

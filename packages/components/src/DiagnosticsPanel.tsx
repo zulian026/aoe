@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Text } from 'ink';
 import type { AoeTheme } from '@aoe/themes';
 import { resolveThemeColor, getSymbol } from './utils/theme-resolver.js';
-import { truncatePath } from './utils/sanitize.js';
+import { truncatePath, maskSecrets, sanitizeTerminalText } from './utils/sanitize.js';
 import { useTheme } from './theme-context.js';
 
 export type DiagnosticSeverityType = 'error' | 'warning' | 'info';
@@ -122,18 +122,22 @@ export const DiagnosticsPanel: React.FC<DiagnosticsPanelProps> = ({
             </Box>
 
             <Box paddingLeft={2}>
-              <Text>{diag.message}</Text>
+              <Text>{sanitizeTerminalText(maskSecrets(diag.message))}</Text>
             </Box>
 
             {diag.rootCause ? (
               <Box paddingLeft={2}>
-                <Text color={mutedColor}>Root cause: {diag.rootCause}</Text>
+                <Text color={mutedColor}>
+                  Root cause: {sanitizeTerminalText(maskSecrets(diag.rootCause))}
+                </Text>
               </Box>
             ) : null}
 
             {diag.suggestedRemediation ? (
               <Box paddingLeft={2}>
-                <Text color={infoColor}>Remediation: {diag.suggestedRemediation}</Text>
+                <Text color={infoColor}>
+                  Remediation: {sanitizeTerminalText(maskSecrets(diag.suggestedRemediation))}
+                </Text>
               </Box>
             ) : null}
           </Box>

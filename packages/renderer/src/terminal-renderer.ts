@@ -331,13 +331,21 @@ export class TerminalRenderer {
       this.inkInstance = undefined;
     }
 
-    // Restore terminal screen and cursor
+    // Restore terminal screen, cursor, and input raw mode
     try {
       if (this.useAlternateScreen) {
         this.stdout.write('\x1b[?1049l');
       }
       // Ensure cursor is visible
       this.stdout.write('\x1b[?25h');
+
+      const stdinAny = this.stdin as unknown as {
+        isRaw?: boolean;
+        setRawMode?: (mode: boolean) => void;
+      };
+      if (stdinAny && typeof stdinAny.setRawMode === 'function' && stdinAny.isRaw) {
+        stdinAny.setRawMode(false);
+      }
     } catch {
       // Stream may be closed
     }

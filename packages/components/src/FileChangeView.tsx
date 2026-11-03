@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Text } from 'ink';
 import type { AoeTheme } from '@aoe/themes';
 import { resolveThemeColor, getSymbol } from './utils/theme-resolver.js';
-import { truncatePath } from './utils/sanitize.js';
+import { truncatePath, maskSecrets, sanitizeTerminalText } from './utils/sanitize.js';
 import { useTheme } from './theme-context.js';
 
 export type FileActionType = 'CREATED' | 'MODIFIED' | 'DELETED' | 'RENAMED';
@@ -109,9 +109,13 @@ export const FileChangeView: React.FC<FileChangeViewProps> = ({
         const evidenceColor = isVerified ? successColor : mutedColor;
 
         // Display path
-        const displayPath = change.oldPath
-          ? `${truncatePath(change.oldPath, 25)} -> ${truncatePath(change.path, 25)}`
-          : truncatePath(change.path, 40);
+        const safeOld = change.oldPath
+          ? sanitizeTerminalText(maskSecrets(change.oldPath))
+          : undefined;
+        const safePath = sanitizeTerminalText(maskSecrets(change.path));
+        const displayPath = safeOld
+          ? `${truncatePath(safeOld, 25)} -> ${truncatePath(safePath, 25)}`
+          : truncatePath(safePath, 40);
 
         return (
           <Box key={`${change.path}-${index}`} flexDirection="row" alignItems="center">

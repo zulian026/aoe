@@ -75,6 +75,15 @@ describe('E2E CLI Subprocess Execution', () => {
     expect(res.stdout).toContain('All checks passed');
   });
 
+  it('executes aoe doctor --json and emits valid parseable JSON to stdout', async () => {
+    const res = await runBinary(['doctor', '--json']);
+    expect(res.code).toBe(0);
+    const parsed = JSON.parse(res.stdout);
+    expect(parsed.passed).toBe(true);
+    expect(parsed.categories.length).toBe(6);
+    expect(res.stderr).toBe('');
+  });
+
   it('executes aoe skill show with exit code 0', async () => {
     const res = await runBinary(['skill', 'show']);
     expect(res.code).toBe(0);

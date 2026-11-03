@@ -202,9 +202,29 @@ export class JsonlAdapter implements AgentAdapter {
         ? eventRecord.sequence
         : session.nextSequence();
 
+    const resolvedEventType = (eventRecord.eventType ?? eventRecord.type) as string;
+
+    // If payload is not an explicit object, package residual fields as payload
+    let resolvedPayload = eventRecord.payload;
+    if (!resolvedPayload || typeof resolvedPayload !== 'object') {
+      const {
+        protocolVersion: _pv,
+        eventId: _ei,
+        sessionId: _si,
+        sequence: _seq,
+        timestamp: _ts,
+        eventType: _et,
+        type: _t,
+        ...rest
+      } = eventRecord;
+      resolvedPayload = rest;
+    }
+
     const candidate: Record<string, unknown> = {
       protocolVersion: PROTOCOL_VERSION,
       ...eventRecord,
+      eventType: resolvedEventType,
+      payload: resolvedPayload,
       sessionId: resolvedSessionId,
       sequence: resolvedSequence,
     };

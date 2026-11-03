@@ -3,9 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aoe-dev/aoe.git"
+  },
+  "homepage": "https://github.com/aoe-dev/aoe#readme",
+  "bugs": "https://github.com/aoe-dev/aoe/issues",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
   "scripts": {
-    "build": "tsc -b",
-    "clean": "pnpm -r exec rm -rf dist *.tsbuildinfo tsconfig.tsbuildinfo",
+    "build": "tsc -b && node -e \"const fs = require('fs'); fs.cpSync('skills', 'apps/cli/skills', { recursive: true });\"",
+    "benchmark": "node scripts/benchmark.js",
+    "clean": "pnpm -r exec rm -rf dist *.tsbuildinfo tsconfig.tsbuildinfo && node -e \"const fs = require('fs'); fs.rmSync('apps/cli/skills', { recursive: true, force: true });\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",

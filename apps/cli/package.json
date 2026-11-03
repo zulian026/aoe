@@ -3,11 +3,37 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Command-line interface for the AOE presentation engine",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aoe-dev/aoe.git",
+    "directory": "apps/cli"
+  },
+  "homepage": "https://github.com/aoe-dev/aoe#readme",
+  "bugs": "https://github.com/aoe-dev/aoe/issues",
+  "keywords": [
+    "aoe",
+    "cli",
+    "ai-agent",
+    "terminal",
+    "output-enhancement",
+    "developer-tools",
+    "ink"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "bin": {
     "aoe": "./dist/bin.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -15,8 +41,8 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "build": "tsc && node -e \"const fs = require('fs'); fs.cpSync('../../skills', './skills', { recursive: true });\"",
+    "clean": "node -e \"const fs = require('fs'); fs.rmSync('dist', { recursive: true, force: true }); fs.rmSync('skills', { recursive: true, force: true }); fs.rmSync('tsconfig.tsbuildinfo', { force: true });\"",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

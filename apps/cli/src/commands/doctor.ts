@@ -20,19 +20,33 @@ export interface DoctorCategory {
   checks: DoctorCheckItem[];
 }
 
+export interface DoctorOptions {
+  customSkillPath?: string;
+  json?: boolean;
+}
+
 export function registerDoctorCommand(program: Command): void {
   program
     .command('doctor')
     .description('Verify system environment, dependencies, themes, and configuration')
-    .action(async () => {
-      await executeDoctor();
+    .option('--json', 'Output results in JSON format to stdout')
+    .action(async (cmdOptions: { json?: boolean }) => {
+      await executeDoctor({ json: cmdOptions.json });
     });
 }
 
-export async function executeDoctor(customSkillPath?: string): Promise<{
+export async function executeDoctor(optionsOrSkillPath?: string | DoctorOptions): Promise<{
   passed: boolean;
   categories: DoctorCategory[];
 }> {
+  const options: DoctorOptions =
+    typeof optionsOrSkillPath === 'string'
+      ? { customSkillPath: optionsOrSkillPath }
+      : (optionsOrSkillPath ?? {});
+
+  const customSkillPath = options.customSkillPath;
+  const isJson = options.json === true;
+
   const categories: DoctorCategory[] = [];
 
   // 1. Runtime Checks
@@ -184,46 +198,72 @@ export async function executeDoctor(customSkillPath?: string): Promise<{
   }
   categories.push({ title: 'Skill', checks: skillChecks });
 
-  // Print results
-  console.log('AOE Doctor');
-  console.log('');
-
   let hasFailures = false;
   let warnCount = 0;
   let passCount = 0;
+  let failCount = 0;
 
   for (const category of categories) {
-    console.log(category.title);
     for (const check of category.checks) {
       if (check.status === 'pass') {
         passCount++;
-        console.log(`  ✓ ${check.name}`);
       } else if (check.status === 'warn') {
         warnCount++;
-        console.log(`  ! ${check.name}`);
-        if (check.details) {
-          console.log(`    Note: ${check.details}`);
-        }
       } else {
         hasFailures = true;
-        console.log(`  ✗ ${check.name}`);
-        if (check.details) {
-          console.log(`    Error: ${check.details}`);
-        }
+        failCount++;
       }
     }
-    console.log('');
   }
 
-  console.log('Summary');
-  if (!hasFailures) {
-    if (warnCount === 0) {
-      console.log('  All checks passed.');
-    } else {
-      console.log(`  All checks passed with ${warnCount} warning(s).`);
-    }
+  if (isJson) {
+    const jsonOutput = {
+      passed: !hasFailures,
+      summary: {
+        passed: passCount,
+        warnings: warnCount,
+        failed: failCount,
+      },
+      categories,
+    };
+    process.stdout.write(JSON.stringify(jsonOutput, null, 2) + '\n');
   } else {
-    console.log(`  Doctor found issues (${passCount} passed, ${warnCount} warnings, failed).`);
+    // Print human-readable results
+    console.log('AOE Doctor');
+    console.log('');
+
+    for (const category of categories) {
+      console.log(category.title);
+      for (const check of category.checks) {
+        if (check.status === 'pass') {
+          console.log(`  ✓ ${check.name}`);
+        } else if (check.status === 'warn') {
+          console.log(`  ! ${check.name}`);
+          if (check.details) {
+            console.log(`    Note: ${check.details}`);
+          }
+        } else {
+          console.log(`  ✗ ${check.name}`);
+          if (check.details) {
+            console.log(`    Error: ${check.details}`);
+          }
+        }
+      }
+      console.log('');
+    }
+
+    console.log('Summary');
+    if (!hasFailures) {
+      if (warnCount === 0) {
+        console.log('  All checks passed.');
+      } else {
+        console.log(`  All checks passed with ${warnCount} warning(s).`);
+      }
+    } else {
+      console.log(
+        `  Doctor found issues (${passCount} passed, ${warnCount} warnings, ${failCount} failed).`,
+      );
+    }
   }
 
   if (hasFailures) {

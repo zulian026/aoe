@@ -22,6 +22,25 @@ describe('aoe doctor command', () => {
     logSpy.mockRestore();
   });
 
+  it('outputs valid JSON to stdout when json: true', async () => {
+    let capturedOutput = '';
+    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation((chunk) => {
+      capturedOutput += chunk.toString();
+      return true;
+    });
+
+    const result = await executeDoctor({ json: true });
+    expect(result.passed).toBe(true);
+
+    stdoutSpy.mockRestore();
+
+    // Verify stdout is pure valid JSON
+    const parsed = JSON.parse(capturedOutput);
+    expect(parsed.passed).toBe(true);
+    expect(parsed.summary.failed).toBe(0);
+    expect(parsed.categories.length).toBe(6);
+  });
+
   it('fails with ENVIRONMENT_ERROR (6) when SKILL.md cannot be located', async () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 

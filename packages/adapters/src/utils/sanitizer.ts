@@ -19,10 +19,24 @@ export function maskSecrets(input: string): string {
   masked = masked.replace(/sk-[a-zA-Z0-9_-]{20,}/g, 'sk-[REDACTED]');
 
   // Google API keys: AIza...
-  masked = masked.replace(/AIza[0-9A-Za-z_-]{35}/g, 'AIza[REDACTED]');
+  masked = masked.replace(/AIza[0-9A-Za-z_-]{30,}/g, 'AIza[REDACTED]');
 
   // AWS Access Key ID
   masked = masked.replace(/AKIA[0-9A-Z]{16}/g, 'AKIA[REDACTED]');
+
+  // GitHub tokens
+  masked = masked.replace(/ghp_[A-Za-z0-9]{36}/g, 'ghp_[REDACTED]');
+  masked = masked.replace(/github_pat_[A-Za-z0-9_]{40,}/g, 'github_pat_[REDACTED]');
+  masked = masked.replace(/gho_[A-Za-z0-9]{36}/g, 'gho_[REDACTED]');
+
+  // Slack tokens
+  masked = masked.replace(/xox[baprs]-[A-Za-z0-9-]+/g, 'xox-[REDACTED]');
+
+  // Private key blocks
+  masked = masked.replace(
+    /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,
+    '-----BEGIN PRIVATE KEY-----\n[REDACTED]\n-----END PRIVATE KEY-----',
+  );
 
   // Common key-value secrets
   masked = masked.replace(

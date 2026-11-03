@@ -11,34 +11,48 @@ export function maskSecrets(input: string): string {
   let masked = input;
 
   // Bearer tokens
-  masked = masked.replace(/Bearer\s+[A-Za-z0-9_.-]{12,}/gi, 'Bearer ******');
+  masked = masked.replace(/Bearer\s+[A-Za-z0-9_.~+/=-]{12,}/gi, 'Bearer ******');
 
   // Key / Token / Secret assignments in URLs or configs
   masked = masked.replace(
-    /(token|api[_-]?key|secret|password|passwd|auth)([=:])\s*["']?([^\s"';&]+)["']?/gi,
+    /(password|passwd|pwd|api[_-]?key|apikey|auth[_-]?token|access[_-]?token|token|secret|private[_-]?key)\s*([=:])\s*["']?([^\s"';&]+)["']?/gi,
     '$1$2******',
   );
 
   // API keys
-  masked = masked.replace(/sk-[A-Za-z0-9]{20,}/g, '******');
+  masked = masked.replace(/sk-[A-Za-z0-9_-]{20,}/g, '******');
+  masked = masked.replace(/AIza[0-9A-Za-z_-]{30,}/g, '******');
   masked = masked.replace(/AKIA[0-9A-Z]{16}/g, '******');
   masked = masked.replace(/ghp_[A-Za-z0-9]{36}/g, '******');
   masked = masked.replace(/github_pat_[A-Za-z0-9_]{40,}/g, '******');
+  masked = masked.replace(/gho_[A-Za-z0-9]{36}/g, '******');
+  masked = masked.replace(/xox[baprs]-[A-Za-z0-9-]+/g, '******');
 
   // Private keys
   masked = masked.replace(
-    /-----BEGIN [A-Z ]+ PRIVATE KEY-----[\s\S]*?-----END [A-Z ]+ PRIVATE KEY-----/g,
+    /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,
     '-----BEGIN PRIVATE KEY-----\n******\n-----END PRIVATE KEY-----',
   );
 
   return masked;
 }
 
-// Regex to strip dangerous terminal control escapes (cursor movement, OSC screen titles, etc.)
-// Preserves standard SGR color codes (\x1b[...m) while stripping control sequences
-const DANGEROUS_ESC_PATTERN = /\x1b(?:\][0-9];[^\x07\x1b]*\x07|\[[0-9;]*[A-HJKSTfmnsu])/g;
-// Full ANSI stripper
-const ALL_ANSI_PATTERN = /\x1b\[[0-9;]*[a-zA-Z]|\x1b\][^\x07\x1b]*\x07/g;
+// Regex to match OSC (Operating System Command) sequences, e.g. window title or clipboard manipulation
+const OSC_PATTERN = /\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g;
+
+// Regex to match DCS, APC, PM sequences
+const DCS_APC_PM_PATTERN = /\x1b[P^_][^\x1b]*(?:\x1b\\|\x07)/g;
+
+// Regex to match dangerous CSI sequences (cursor control, erase, scroll, screen mode)
+// Note: SGR color styling (\x1b[...m) is NOT matched here and thus preserved when safe
+const DANGEROUS_CSI_PATTERN = /\x1b\[\??[0-9;]*[A-HJKSTfnsuhlirABCD]/g;
+
+// Full ANSI escape sequence pattern for complete stripping
+const ALL_ANSI_PATTERN =
+  /\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|\][^\x07\x1b]*(?:\x07|\x1b\\)|[P^_][^\x1b]*(?:\x1b\\|\x07))/g;
+
+// Trojan Source unicode bidirectional override and isolate characters
+const BIDI_OVERRIDE_PATTERN = /[\u202A-\u202E\u2066-\u2069]/g;
 
 /**
  * Strips all ANSI escape sequences from text.
@@ -49,12 +63,18 @@ export function stripAnsi(text: string): string {
 }
 
 /**
- * Strips dangerous terminal control sequences while preserving safe text.
+ * Strips dangerous terminal control sequences while preserving safe text and SGR colors.
+ * Also neutralizes Unicode bidirectional override attacks and unprintable control chars.
  */
 export function sanitizeTerminalText(text: string): string {
   if (!text) return text;
-  // Replace control characters except tab and newline
-  return text.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '').replace(DANGEROUS_ESC_PATTERN, '');
+
+  return text
+    .replace(OSC_PATTERN, '') // OSC title / clipboard escapes
+    .replace(DCS_APC_PM_PATTERN, '') // DCS / APC / PM escapes
+    .replace(DANGEROUS_CSI_PATTERN, '') // Dangerous CSI cursor / mode switches
+    .replace(BIDI_OVERRIDE_PATTERN, '') // Trojan Source bidi overrides
+    .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1A\x1C-\x1F\x7F]/g, ''); // Unprintable ASCII controls (preserves \t, \n)
 }
 
 /**

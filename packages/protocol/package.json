@@ -3,6 +3,29 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Universal Event Protocol schemas, types, and validators for AOE",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aoe-dev/aoe.git",
+    "directory": "packages/protocol"
+  },
+  "homepage": "https://github.com/aoe-dev/aoe#readme",
+  "bugs": "https://github.com/aoe-dev/aoe/issues",
+  "keywords": [
+    "aoe",
+    "protocol",
+    "jsonl",
+    "events",
+    "ai-agent"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

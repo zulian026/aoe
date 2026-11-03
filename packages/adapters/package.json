@@ -3,6 +3,30 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Agent ingestion adapters converting CLI/agent telemetry to AOE Universal Protocol",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aoe-dev/aoe.git",
+    "directory": "packages/adapters"
+  },
+  "homepage": "https://github.com/aoe-dev/aoe#readme",
+  "bugs": "https://github.com/aoe-dev/aoe/issues",
+  "keywords": [
+    "aoe",
+    "adapters",
+    "claude-code",
+    "gemini-cli",
+    "telemetry",
+    "jsonl"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

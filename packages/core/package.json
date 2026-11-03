@@ -3,6 +3,29 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Core state management, event processing, and lifecycle engine for AOE",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aoe-dev/aoe.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/aoe-dev/aoe#readme",
+  "bugs": "https://github.com/aoe-dev/aoe/issues",
+  "keywords": [
+    "aoe",
+    "core",
+    "state-machine",
+    "lifecycle",
+    "event-store"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
