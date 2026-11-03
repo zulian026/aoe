@@ -8,11 +8,13 @@ on:
 
 jobs:
   verify:
-    name: Build, Typecheck, Test, and Lint
-    runs-on: ubuntu-latest
+    name: ${{ matrix.os }} - Node ${{ matrix.node-version }}
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [20.x, 22.x]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: [20.x, 22.x, 24.x]
 
     steps:
       - name: Checkout repository
@@ -41,8 +43,10 @@ jobs:
       - name: Run unit and integration tests
         run: pnpm test
 
-      - name: Lint check
+      - name: Lint check (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
         run: pnpm lint
 
-      - name: Formatting check
+      - name: Formatting check (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
         run: pnpm format:check
