@@ -1,24 +1,37 @@
 import { z } from 'zod';
+import { PROTOCOL_NAME, PROTOCOL_VERSION } from './constants.js';
 
-export const PROTOCOL_NAME = 'aoe';
-export const PROTOCOL_VERSION = '1.0.0';
+export * from './constants.js';
+export * from './envelope.js';
+export * from './events/index.js';
+export * from './serialization.js';
+export * from './helpers.js';
 
+// Backwards-compatible legacy envelope schema for M00 callers
 export const ProtocolEnvelopeSchema = z.object({
-  protocol: z.literal(PROTOCOL_NAME),
-  version: z.literal(PROTOCOL_VERSION),
-  timestamp: z.string().datetime(),
-  sessionId: z.string().min(1),
+  protocol: z.literal(PROTOCOL_NAME).optional(),
+  version: z.literal(PROTOCOL_VERSION).optional(),
+  protocolVersion: z.literal(PROTOCOL_VERSION).optional(),
+  eventId: z.string().optional(),
+  timestamp: z.string(),
+  sessionId: z.string(),
   sequence: z.number().int().nonnegative(),
-  event: z.string().min(1),
-  data: z.unknown(),
+  event: z.string().optional(),
+  eventType: z.string().optional(),
+  data: z.unknown().optional(),
+  payload: z.unknown().optional(),
 });
 
 export type ProtocolEnvelope<T = unknown> = {
-  protocol: typeof PROTOCOL_NAME;
-  version: typeof PROTOCOL_VERSION;
+  protocol?: typeof PROTOCOL_NAME;
+  version?: typeof PROTOCOL_VERSION;
+  protocolVersion?: typeof PROTOCOL_VERSION;
+  eventId?: string;
   timestamp: string;
   sessionId: string;
   sequence: number;
-  event: string;
-  data: T;
+  event?: string;
+  eventType?: string;
+  data?: T;
+  payload?: T;
 };
