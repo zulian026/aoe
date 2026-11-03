@@ -125,7 +125,7 @@ aoe doctor --json
 Pipe canonical AOE JSONL events directly into the renderer:
 
 ```bash
-echo '{"protocolVersion":"1.0.0","eventId":"evt-1","sessionId":"demo-1","sequence":1,"timestamp":"2026-11-03T12:00:00Z","eventType":"session.started","payload":{"workingDirectory":"/tmp"}}' | aoe render
+echo '{"protocolVersion":"1.0.0","eventId":"evt-1","sessionId":"demo-1","sequence":1,"timestamp":"2026-11-03T12:00:00Z","eventType":"session.started","payload":{"workingDirectory":"/tmp","agent":{"name":"demo-agent"}}}' | aoe render
 ```
 
 ### 3. Adapt Agent Output
