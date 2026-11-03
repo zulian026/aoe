@@ -30,8 +30,10 @@ export class ClaudeCodeAdapter implements AgentAdapter {
     const evidence: string[] = [];
     const env = context.environment ?? {};
 
-    if (env.CLAUDE_CODE_ENTRYPOINT || env.CLAUDE_PROJECT_DIR) {
-      evidence.push('Environment variables CLAUDE_CODE_ENTRYPOINT or CLAUDE_PROJECT_DIR detected');
+    if (env.CLAUDE_CODE_ENTRYPOINT || env.CLAUDE_PROJECT_DIR || env.CLAUDE_PROJECT_ROOT) {
+      evidence.push(
+        'Environment variables CLAUDE_CODE_ENTRYPOINT, CLAUDE_PROJECT_DIR, or CLAUDE_PROJECT_ROOT detected',
+      );
     }
 
     if (context.metadata?.agent === 'claude-code' || context.metadata?.agent === 'claude') {

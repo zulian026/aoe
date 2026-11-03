@@ -35,18 +35,27 @@ importers:
       '@aoe/adapters':
         specifier: workspace:*
         version: link:../../packages/adapters
+      '@aoe/components':
+        specifier: workspace:*
+        version: link:../../packages/components
       '@aoe/core':
         specifier: workspace:*
         version: link:../../packages/core
       '@aoe/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
+      '@aoe/renderer':
+        specifier: workspace:*
+        version: link:../../packages/renderer
       '@aoe/themes':
         specifier: workspace:*
         version: link:../../packages/themes
       commander:
         specifier: ^13.1.0
         version: 13.1.0
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
 
   packages/adapters:
     dependencies:

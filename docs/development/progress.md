@@ -9,8 +9,8 @@
 | **M04**   | **Terminal Renderer**        | Ink components, terminal screen manager, alternate screen buffer                    | **Completed** | Commit `dfa757f`                  |
 | **M05**   | **Theme Engine**             | Theme registry, Obsidian dark, light, high-contrast, custom tokens, resolver        | **Completed** | 208 tests passing across monorepo |
 | **M06**   | **Agent Integration**        | Adapters for Codex, Claude Code, Gemini CLI, OpenCode, generic stream               | **Completed** | 251 tests passing across monorepo |
-| **M07**   | **CLI Tooling**              | `aoe` commands (`render`, `pipe`, `theme`, `doctor`, `skill`)                       | Pending       | Recommended next milestone        |
-| **M08**   | **Release Preparation**      | Packaging, end-to-end verification, performance profiling, release                  | Pending       | Blocked on M07                    |
+| **M07**   | **CLI Tooling**              | `aoe` commands (`render`, `pipe`, `theme`, `doctor`, `skill`)                       | **Completed** | 303 tests passing across monorepo |
+| **M08**   | **Release Preparation**      | Packaging, end-to-end verification, performance profiling, release                  | Pending       | Recommended next milestone        |
 
 ---
 
@@ -149,3 +149,41 @@
     - `creating-an-adapter.md`: Step-by-step developer guide for creating and testing custom agent adapters.
   - Comprehensive unit and integration test suites: 251 passing tests across monorepo (43 new tests added for M06 across manager, claude-code, gemini-cli, jsonl, and end-to-end adapter-to-engine-to-renderer pipelines).
 - **Verification**: 100% test pass rate, clean TypeScript build, clean linting, clean formatting.
+
+### M07: CLI Tooling & Runtime Integration
+
+- **Goal**: Implement the official standalone `aoe` CLI executable in `apps/cli`, wiring streaming input readers, user configuration, `@aoe/adapters`, `@aoe/protocol`, `@aoe/core`, and `@aoe/renderer` into five production-ready command suites.
+- **Status**: Completed.
+- **Deliverables**:
+  - `apps/cli/src/`:
+    - `commands/`:
+      - `render.ts`: Canonical AOE JSONL streaming renderer from stdin with EOF partial-chunk handling, schema validation, and exit code 3 on protocol error.
+      - `pipe.ts`: Universal agent ingestion pipeline supporting Claude Code, Gemini CLI, Generic JSONL, and confidence-based auto-detection.
+      - `theme.ts`: Presentation theme manager (`list`, `show <name>`, `current`, `set <name>`) with atomic configuration persistence.
+      - `doctor.ts`: Diagnostic engine performing real checks across Node.js runtime, CLI version, configuration, themes, adapters, terminal capabilities, and skill files.
+      - `skill.ts`: Direct inspector for portable AOE Skill definition (`show`, `path`).
+    - `config/`:
+      - `config-schema.ts`: Zod schema for `AoeConfig` with default fallback.
+      - `config-path.ts`: Platform-appropriate configuration resolver (Linux XDG, macOS, Windows, `AOE_CONFIG_PATH`).
+      - `config-loader.ts`: Safe configuration reader with malformed JSON protection.
+      - `config-writer.ts`: Atomic configuration saver with temporary file swap.
+    - `runtime/`:
+      - `exit-codes.ts`: Deterministic exit code registry (0..6, 130, 143).
+      - `stdin-reader.ts`: Async streaming chunk reader with 50 MB bounded memory limit.
+      - `signal-handler.ts`: Graceful SIGINT/SIGTERM shutdown coordinator.
+      - `execution-pipeline.ts`: Coordinator connecting Engine, Session, and TerminalRenderer / StaticRenderer.
+    - `utils/`:
+      - `errors.ts`: Standardized `CliError` and actionable stderr formatting.
+      - `logger.ts`: Diagnostic logger for stderr output.
+      - `skill-path.ts`: Multi-candidate resolver for `skills/aoe/SKILL.md`.
+    - `program.ts`: Commander application assembly and error boundary.
+    - `bin.ts`: Executable entrypoint (`#!/usr/bin/env node`).
+  - `docs/architecture/`:
+    - `cli-runtime.md`: Architectural pipeline, execution flow, signal handling, and exit codes.
+  - `docs/development/`:
+    - `cli-usage.md`: Complete CLI usage guide and command reference.
+    - `configuration.md`: Configuration schema, paths, atomic updates, and security principles.
+  - `docs/integrations/`:
+    - `cli-integration.md`: Integration guide for Claude Code, Gemini CLI, UNIX pipes, and CI/CD pipelines.
+  - Test suite: 47 test files, 303 passing tests across the monorepo (10 test files and 53 tests in `apps/cli` including real subprocess execution tests).
+- **Verification**: 100% test pass rate, clean TypeScript build, clean typecheck, clean linting (0 errors, 0 warnings), clean formatting.

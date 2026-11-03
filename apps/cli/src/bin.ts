@@ -1,5 +1,8 @@
 #!/usr/bin/env node
-import { createProgram } from './index.js';
+import { runCli } from './program.js';
 
-const program = createProgram();
-program.parse(process.argv);
+void runCli(process.argv).then((exitCode) => {
+  if (exitCode !== 0) {
+    process.exit(exitCode);
+  }
+});

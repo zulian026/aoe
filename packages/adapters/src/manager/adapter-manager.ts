@@ -266,6 +266,7 @@ export class AdapterManager {
 export function createDefaultAdapterManager(): AdapterManager {
   const manager = new AdapterManager();
   manager.register(new JsonlAdapter());
+  manager.register(new JsonlAdapter({ id: 'generic-jsonl' }));
   manager.register(new ClaudeCodeAdapter());
   manager.register(new GeminiCliAdapter());
   return manager;

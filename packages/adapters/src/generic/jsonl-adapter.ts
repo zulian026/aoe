@@ -17,11 +17,12 @@ import { JsonlParser } from './jsonl-parser.js';
 import { sanitizePayload } from '../utils/sanitizer.js';
 
 export interface JsonlAdapterOptions {
+  id?: string;
   maxLineLengthBytes?: number;
 }
 
 export class JsonlAdapter implements AgentAdapter {
-  public readonly id = 'jsonl';
+  public readonly id: string;
   public readonly name = 'Generic JSONL Adapter';
   public readonly version = '1.0.0';
   public readonly kind: AgentKind = 'generic';
@@ -39,6 +40,7 @@ export class JsonlAdapter implements AgentAdapter {
   private readonly parser: JsonlParser;
 
   constructor(options: JsonlAdapterOptions = {}) {
+    this.id = options.id ?? 'jsonl';
     this.parser = new JsonlParser({
       maxLineLengthBytes: options.maxLineLengthBytes,
       adapterId: this.id,
