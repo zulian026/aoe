@@ -190,4 +190,33 @@ MIIEowIBAAKCAQEA0Y1+abcdefghijklmnopqrstuvwxyz1234567890
       }).rejects.toThrow(CliError);
     });
   });
+
+  describe('Crash Resilience & Malformed Data Defense', () => {
+    it('safely handles ReDoS attack strings and ultra-long inputs without crashing or hanging', () => {
+      // 50,000 character string of repeated potential trigger patterns
+      const largeInput = 'Bearer ' + 'A'.repeat(50000) + ' <thought>' + 'B'.repeat(10000);
+      const start = Date.now();
+      const sanitized = sanitizeTerminalText(maskSecrets(largeInput));
+      const elapsed = Date.now() - start;
+
+      expect(elapsed).toBeLessThan(1000); // Must complete within 1 second (no catastrophic backtracking)
+      expect(sanitized).toBeDefined();
+      expect(sanitized).toContain('Bearer ******');
+    });
+
+    it('safely handles unclosed or mismatched reasoning tags without throwing', () => {
+      const unclosed = '<thought>Internal thought with no closing tag but trailing text';
+      expect(() => stripPrivateReasoning(unclosed)).not.toThrow();
+      const mismatched = '<scratchpad>notes</thought>Real message';
+      expect(() => stripPrivateReasoning(mismatched)).not.toThrow();
+    });
+
+    it('prevents prototype pollution injection in sanitizePayload', () => {
+      const payloadWithProto = JSON.parse('{"__proto__":{"polluted":true},"task":"valid"}');
+      const sanitized = sanitizePayload(payloadWithProto) as Record<string, unknown>;
+
+      expect(sanitized.task).toBe('valid');
+      expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+    });
+  });
 });
