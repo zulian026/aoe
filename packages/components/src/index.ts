@@ -1,4 +1,4 @@
-import { type ThemeDefinition } from '@aoe/themes';
+import { type AoeTheme, type ThemeDefinition } from '@aoe/themes';
 
 export type ComponentStatus =
   | 'idle'
@@ -13,7 +13,7 @@ export type ComponentStatus =
   | 'cancelled';
 
 export interface ComponentRenderOptions {
-  theme: ThemeDefinition;
+  theme: AoeTheme | ThemeDefinition;
   unicode?: boolean;
   width?: number;
 }
@@ -32,6 +32,9 @@ export const COMPONENT_REGISTRY = [
 ] as const;
 
 export type ComponentName = (typeof COMPONENT_REGISTRY)[number];
+
+// Theme Context and Hook
+export * from './theme-context.js';
 
 // Component exports
 export * from './StatusIndicator.js';

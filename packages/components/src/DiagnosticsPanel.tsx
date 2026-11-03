@@ -1,8 +1,9 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import { OBSIDIAN_THEME, type ThemeDefinition } from '@aoe/themes';
+import type { AoeTheme } from '@aoe/themes';
 import { resolveThemeColor, getSymbol } from './utils/theme-resolver.js';
 import { truncatePath } from './utils/sanitize.js';
+import { useTheme } from './theme-context.js';
 
 export type DiagnosticSeverityType = 'error' | 'warning' | 'info';
 
@@ -28,7 +29,7 @@ export interface DiagnosticsPanelProps {
   diagnostics: DiagnosticItem[];
   maxItems?: number;
   width?: number;
-  theme?: ThemeDefinition;
+  theme?: AoeTheme;
   noColor?: boolean;
   unicode?: boolean;
 }
@@ -37,14 +38,15 @@ export const DiagnosticsPanel: React.FC<DiagnosticsPanelProps> = ({
   diagnostics,
   maxItems = 10,
   width,
-  theme = OBSIDIAN_THEME,
+  theme: explicitTheme,
   noColor = false,
   unicode = true,
 }) => {
-  const mutedColor = resolveThemeColor('muted', theme, noColor);
-  const errorColor = resolveThemeColor('error', theme, noColor);
-  const warningColor = resolveThemeColor('warning', theme, noColor);
-  const infoColor = resolveThemeColor('info', theme, noColor);
+  const activeTheme = useTheme(explicitTheme);
+  const mutedColor = resolveThemeColor('foregroundMuted', activeTheme, noColor);
+  const errorColor = resolveThemeColor('error', activeTheme, noColor);
+  const warningColor = resolveThemeColor('warning', activeTheme, noColor);
+  const infoColor = resolveThemeColor('info', activeTheme, noColor);
 
   if (!diagnostics || diagnostics.length === 0) {
     return (
@@ -76,13 +78,13 @@ export const DiagnosticsPanel: React.FC<DiagnosticsPanelProps> = ({
         let badgeColor = mutedColor;
 
         if (diag.severity === 'error') {
-          badge = getSymbol('cross', unicode);
+          badge = getSymbol('cross', unicode, activeTheme);
           badgeColor = errorColor;
         } else if (diag.severity === 'warning') {
-          badge = getSymbol('triangle', unicode);
+          badge = getSymbol('triangle', unicode, activeTheme);
           badgeColor = warningColor;
         } else {
-          badge = getSymbol('circle', unicode);
+          badge = getSymbol('circle', unicode, activeTheme);
           badgeColor = infoColor;
         }
 

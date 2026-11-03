@@ -1,8 +1,9 @@
 import React from 'react';
 import { Box } from 'ink';
 import type { SessionSnapshot } from '@aoe/core';
-import { OBSIDIAN_THEME, type ThemeDefinition } from '@aoe/themes';
+import { OBSIDIAN_THEME, type AoeTheme, type ThemeDefinition } from '@aoe/themes';
 import {
+  ThemeProvider,
   Panel,
   StatusIndicator,
   ProgressBar,
@@ -20,7 +21,7 @@ import {
 
 export interface InteractiveAppProps {
   snapshot: SessionSnapshot;
-  theme?: ThemeDefinition;
+  theme?: AoeTheme | ThemeDefinition;
   noColor?: boolean;
   unicode?: boolean;
   animated?: boolean;
@@ -96,94 +97,96 @@ export const InteractiveApp: React.FC<InteractiveAppProps> = ({
   const agentStr = snapshot.agent?.name ? ` [${snapshot.agent.name}]` : '';
 
   return (
-    <Box flexDirection="column" width={width}>
-      {/* Session Header Panel */}
-      <Panel
-        title={`AOE Session ${snapshot.sessionId}${agentStr}`}
-        metadata={`Duration: ${durationStr}`}
-        borderStyle="round"
-        theme={theme}
-        noColor={noColor}
-      >
-        <Box flexDirection="row" alignItems="center" marginBottom={1}>
-          <StatusIndicator
-            status={sessionStatus}
-            label={`Session ${snapshot.status.toUpperCase()}`}
-            theme={theme}
-            noColor={noColor}
-            unicode={unicode}
-            animated={animated}
-          />
-        </Box>
-
-        {/* Overall Progress */}
-        {snapshot.progress ? (
-          <Box marginBottom={1}>
-            <ProgressBar
-              completedWork={snapshot.progress.completedWork}
-              totalWork={snapshot.progress.totalWork}
-              verifiedWork={snapshot.progress.verifiedWork}
-              isEstimate={snapshot.progress.isEstimate}
-              percentage={snapshot.progress.percentage ?? undefined}
-              unit={snapshot.progress.unit}
-              description={snapshot.progress.description}
-              width={30}
+    <ThemeProvider theme={theme}>
+      <Box flexDirection="column" width={width}>
+        {/* Session Header Panel */}
+        <Panel
+          title={`AOE Session ${snapshot.sessionId}${agentStr}`}
+          metadata={`Duration: ${durationStr}`}
+          borderStyle="round"
+          theme={theme}
+          noColor={noColor}
+        >
+          <Box flexDirection="row" alignItems="center" marginBottom={1}>
+            <StatusIndicator
+              status={sessionStatus}
+              label={`Session ${snapshot.status.toUpperCase()}`}
               theme={theme}
               noColor={noColor}
               unicode={unicode}
+              animated={animated}
             />
           </Box>
-        ) : null}
 
-        {/* Task Summary */}
-        <Box marginBottom={1}>
-          <TaskSummary tasks={taskTree} theme={theme} noColor={noColor} unicode={unicode} />
-        </Box>
+          {/* Overall Progress */}
+          {snapshot.progress ? (
+            <Box marginBottom={1}>
+              <ProgressBar
+                completedWork={snapshot.progress.completedWork}
+                totalWork={snapshot.progress.totalWork}
+                verifiedWork={snapshot.progress.verifiedWork}
+                isEstimate={snapshot.progress.isEstimate}
+                percentage={snapshot.progress.percentage ?? undefined}
+                unit={snapshot.progress.unit}
+                description={snapshot.progress.description}
+                width={30}
+                theme={theme}
+                noColor={noColor}
+                unicode={unicode}
+              />
+            </Box>
+          ) : null}
 
-        {/* File Changes (if any) */}
-        {snapshot.fileChanges && snapshot.fileChanges.length > 0 ? (
+          {/* Task Summary */}
           <Box marginBottom={1}>
-            <FileChangeView
-              changes={[...snapshot.fileChanges]}
-              theme={theme}
-              noColor={noColor}
-              unicode={unicode}
-            />
+            <TaskSummary tasks={taskTree} theme={theme} noColor={noColor} unicode={unicode} />
           </Box>
-        ) : null}
 
-        {/* Diagnostics (if any) */}
-        {snapshot.diagnostics && snapshot.diagnostics.length > 0 ? (
-          <Box marginBottom={1}>
-            <DiagnosticsPanel
-              diagnostics={[...snapshot.diagnostics]}
-              theme={theme}
-              noColor={noColor}
-              unicode={unicode}
-            />
-          </Box>
-        ) : null}
+          {/* File Changes (if any) */}
+          {snapshot.fileChanges && snapshot.fileChanges.length > 0 ? (
+            <Box marginBottom={1}>
+              <FileChangeView
+                changes={[...snapshot.fileChanges]}
+                theme={theme}
+                noColor={noColor}
+                unicode={unicode}
+              />
+            </Box>
+          ) : null}
 
-        {/* Execution Logs (if any) */}
-        {logs.length > 0 ? (
-          <Box marginBottom={1}>
-            <ExecutionLog logs={logs} theme={theme} noColor={noColor} />
-          </Box>
-        ) : null}
+          {/* Diagnostics (if any) */}
+          {snapshot.diagnostics && snapshot.diagnostics.length > 0 ? (
+            <Box marginBottom={1}>
+              <DiagnosticsPanel
+                diagnostics={[...snapshot.diagnostics]}
+                theme={theme}
+                noColor={noColor}
+                unicode={unicode}
+              />
+            </Box>
+          ) : null}
 
-        {/* Results (if any) */}
-        {results.length > 0 ? (
-          <Box>
-            <ResultView
-              results={results}
-              sessionStatus={snapshot.status}
-              theme={theme}
-              noColor={noColor}
-              unicode={unicode}
-            />
-          </Box>
-        ) : null}
-      </Panel>
-    </Box>
+          {/* Execution Logs (if any) */}
+          {logs.length > 0 ? (
+            <Box marginBottom={1}>
+              <ExecutionLog logs={logs} theme={theme} noColor={noColor} />
+            </Box>
+          ) : null}
+
+          {/* Results (if any) */}
+          {results.length > 0 ? (
+            <Box>
+              <ResultView
+                results={results}
+                sessionStatus={snapshot.status}
+                theme={theme}
+                noColor={noColor}
+                unicode={unicode}
+              />
+            </Box>
+          ) : null}
+        </Panel>
+      </Box>
+    </ThemeProvider>
   );
 };

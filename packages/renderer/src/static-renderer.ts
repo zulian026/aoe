@@ -1,17 +1,17 @@
 import type { SessionSnapshot, TaskSnapshot } from '@aoe/core';
-import { OBSIDIAN_THEME, type ThemeDefinition } from '@aoe/themes';
+import { OBSIDIAN_THEME, type AoeTheme, type ThemeDefinition } from '@aoe/themes';
 import { formatDuration, maskSecrets, stripAnsi } from '@aoe/components';
 import { supportsColor, isNoColor } from './environment.js';
 
 export interface StaticRendererOptions {
   stream?: NodeJS.WritableStream;
-  theme?: ThemeDefinition;
+  theme?: AoeTheme | ThemeDefinition;
   noColor?: boolean;
 }
 
 export class StaticRenderer {
   private readonly stream: NodeJS.WritableStream;
-  private readonly theme: ThemeDefinition;
+  private theme: AoeTheme | ThemeDefinition;
   private readonly noColor: boolean;
   private lastSessionStatus?: string;
   private lastCompletedTasks = 0;
@@ -26,8 +26,12 @@ export class StaticRenderer {
       options.noColor ?? (isNoColor() || !supportsColor(this.stream as NodeJS.WriteStream));
   }
 
-  public getTheme(): ThemeDefinition {
+  public getTheme(): AoeTheme | ThemeDefinition {
     return this.theme;
+  }
+
+  public setTheme(theme: AoeTheme | ThemeDefinition): void {
+    this.theme = theme;
   }
 
   /**

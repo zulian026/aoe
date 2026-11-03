@@ -6,9 +6,9 @@
 | **M01**   | **AOE Skill**                | Standalone instruction system, native fallback, hierarchy, tables, error formatting | **Completed** | Commit `abe5d7d`                  |
 | **M02**   | **Universal Event Protocol** | Versioned JSONL event schemas, envelopes, Zod validation                            | **Completed** | Commit `35974e9`                  |
 | **M03**   | **Core Engine**              | Event stream processing, session manager, state machine, lifecycle                  | **Completed** | Commit `d783235`                  |
-| **M04**   | **Terminal Renderer**        | Ink components, terminal screen manager, alternate screen buffer                    | **Completed** | 171 tests passing across monorepo |
-| **M05**   | **Theme Engine**             | Theme registry, Obsidian dark, light theme, custom tokens                           | Pending       | Recommended next milestone        |
-| **M06**   | **Agent Integration**        | Adapters for Codex, Claude Code, Gemini CLI, OpenCode, generic stream               | Pending       | Blocked on M05                    |
+| **M04**   | **Terminal Renderer**        | Ink components, terminal screen manager, alternate screen buffer                    | **Completed** | Commit `dfa757f`                  |
+| **M05**   | **Theme Engine**             | Theme registry, Obsidian dark, light, high-contrast, custom tokens, resolver        | **Completed** | 208 tests passing across monorepo |
+| **M06**   | **Agent Integration**        | Adapters for Codex, Claude Code, Gemini CLI, OpenCode, generic stream               | Pending       | Recommended next milestone        |
 | **M07**   | **CLI Tooling**              | `aoe` commands (`render`, `pipe`, `theme`, `doctor`, `skill`)                       | Pending       | Blocked on M06                    |
 | **M08**   | **Release Preparation**      | Packaging, end-to-end verification, performance profiling, release                  | Pending       | Blocked on M07                    |
 
@@ -84,4 +84,34 @@
   - `docs/development/`:
     - `terminal-compatibility.md`: TTY/non-TTY matrix, accessibility, NO_COLOR, dimensions.
   - Comprehensive unit and integration test suites: 171 passing tests across monorepo (56 new tests for M04).
+- **Verification**: 100% test pass rate, clean TypeScript build, clean linting, clean formatting.
+
+### M05: Theme Engine
+
+- **Goal**: Implement a complete, extensible semantic Theme Engine (`@aoe/themes`) decoupled from presentation components, providing design tokens, built-in themes, capability resolution, runtime theme switching, and deep immutability.
+- **Status**: Completed.
+- **Deliverables**:
+  - `packages/themes/src/`:
+    - `contracts.ts`: Zod schemas and TypeScript types for `ColorValueSchema`, `ThemeColorsSchema` (16 semantic palette tokens), `ThemeStatusColorsSchema` (7 lifecycle states), `ThemeTypographySchema`, `ThemeSpacingSchema`, `SymbolPairSchema`, `ThemeSymbolsSchema`, `ThemeTokensSchema`, and `AoeThemeSchema` with legacy backward-compatibility aliases.
+    - `errors.ts`: Typed error hierarchy (`ThemeError`, `ThemeValidationError`, `ThemeNotFoundError`, `DuplicateThemeError`).
+    - `validator.ts`: Pure schema validation, deep-freeze immutability (`deepFreeze`), deep clone, and legacy flat token normalization.
+    - `builtin/`: Three production-ready built-in themes:
+      - `obsidian.ts`: Default dark theme (`id: 'obsidian'`, cyan/magenta brand accents).
+      - `light.ts`: Accessible off-white theme (`id: 'light'`, dark blue/teal accents).
+      - `high-contrast.ts`: High-contrast dark theme (`id: 'high-contrast'`, pure white foreground, vivid ANSI colors).
+    - `registry.ts`: `ThemeRegistry` with registration validation, duplicate protection, deterministic retrieval, listing, and default theme management.
+    - `resolver.ts`: Capability-aware token resolution supporting `NO_COLOR`, `FORCE_COLOR`, color depth, and Unicode vs ASCII symbol fallback.
+  - `packages/components/src/`:
+    - `theme-context.tsx`: `ThemeProvider` context and `useTheme` hook with obsidian fallback.
+    - Component refactoring: All 9 presentation components (`StatusIndicator`, `ProgressBar`, `Panel`, `TaskSummary`, `FileChangeView`, `DiagnosticsPanel`, `ExecutionLog`, `ResultView`, `Table`) refactored to consume semantic tokens via `useTheme()` and props.
+  - `packages/renderer/src/`:
+    - `terminal-renderer.ts`: Updated to accept theme ID strings or `AoeTheme` objects; added `setTheme(...)` for runtime theme switching with immediate re-render and invalid theme fallback.
+    - `interactive-app.tsx`: Wrapped root layout in `<ThemeProvider>`.
+    - `static-renderer.ts`: Added `setTheme(...)` and semantic token support.
+  - `docs/architecture/`:
+    - `theme-engine.md`: Theme engine architecture, boundaries, contracts, and lifecycle.
+    - `design-tokens.md`: Complete specification of color, status, typography, spacing, and symbol tokens.
+  - `docs/development/`:
+    - `custom-themes.md`: Step-by-step developer guide for defining, validating, and registering custom themes.
+  - Comprehensive unit and integration test suites: 208 passing tests across monorepo (37 new tests for M05 across themes, components, and renderer).
 - **Verification**: 100% test pass rate, clean TypeScript build, clean linting, clean formatting.

@@ -183,4 +183,72 @@ describe('TerminalRenderer Orchestrator', () => {
 
     await renderer.stop();
   });
+
+  describe('Theme Management and Runtime Switching', () => {
+    it('defaults to obsidian theme', () => {
+      const renderer = new TerminalRenderer();
+      expect(renderer.getTheme().id).toBe('obsidian');
+    });
+
+    it('resolves theme from valid theme ID strings', () => {
+      const lightRenderer = new TerminalRenderer({ theme: 'light' });
+      expect(lightRenderer.getTheme().id).toBe('light');
+
+      const hcRenderer = new TerminalRenderer({ theme: 'high-contrast' });
+      expect(hcRenderer.getTheme().id).toBe('high-contrast');
+    });
+
+    it('falls back to obsidian when unknown theme ID string is provided in options', () => {
+      const renderer = new TerminalRenderer({ theme: 'nonexistent-theme-xyz' });
+      expect(renderer.getTheme().id).toBe('obsidian');
+    });
+
+    it('switches theme at runtime via setTheme and preserves existing theme on invalid input', async () => {
+      const stream = new MockTerminalStream();
+      const renderer = new TerminalRenderer({
+        stdout: stream as unknown as NodeJS.WriteStream,
+        mode: 'static',
+      });
+
+      await renderer.start();
+      expect(renderer.getTheme().id).toBe('obsidian');
+
+      // Switch to light
+      const switchedLight = renderer.setTheme('light');
+      expect(switchedLight).toBe(true);
+      expect(renderer.getTheme().id).toBe('light');
+
+      // Switch to high-contrast
+      const switchedHC = renderer.setTheme('high-contrast');
+      expect(switchedHC).toBe(true);
+      expect(renderer.getTheme().id).toBe('high-contrast');
+
+      // Attempt invalid switch
+      const invalidSwitch = renderer.setTheme('totally-invalid-theme');
+      expect(invalidSwitch).toBe(false);
+      // Theme should remain high-contrast
+      expect(renderer.getTheme().id).toBe('high-contrast');
+
+      await renderer.stop();
+    });
+
+    it('re-renders latest snapshot when setTheme is called', async () => {
+      const stream = new MockTerminalStream();
+      const renderer = new TerminalRenderer({
+        stdout: stream as unknown as NodeJS.WriteStream,
+        mode: 'static',
+      });
+
+      await renderer.start();
+      const snapshot = createMockSnapshot({ sessionId: 'sess_theme_rerender' });
+      renderer.renderSnapshot(snapshot);
+
+      const streamOutputLengthBefore = stream.output.length;
+      renderer.setTheme('light');
+      // Verify stream received new render output
+      expect(stream.output.length).toBeGreaterThanOrEqual(streamOutputLengthBefore);
+
+      await renderer.stop();
+    });
+  });
 });

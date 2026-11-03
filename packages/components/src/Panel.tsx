@@ -1,14 +1,15 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import { OBSIDIAN_THEME, type ThemeDefinition } from '@aoe/themes';
+import type { AoeTheme } from '@aoe/themes';
 import { resolveThemeColor } from './utils/theme-resolver.js';
+import { useTheme } from './theme-context.js';
 
 export interface PanelProps {
   title?: string;
   metadata?: string;
   width?: number;
   borderStyle?: 'round' | 'single' | 'classic' | 'none';
-  theme?: ThemeDefinition;
+  theme?: AoeTheme;
   noColor?: boolean;
   paddingX?: number;
   paddingY?: number;
@@ -20,15 +21,19 @@ export const Panel: React.FC<PanelProps> = ({
   metadata,
   width,
   borderStyle = 'round',
-  theme = OBSIDIAN_THEME,
+  theme: explicitTheme,
   noColor = false,
-  paddingX = 1,
-  paddingY = 0,
+  paddingX,
+  paddingY,
   children,
 }) => {
-  const borderColor = resolveThemeColor('border', theme, noColor);
-  const primaryColor = resolveThemeColor('primary', theme, noColor);
-  const mutedColor = resolveThemeColor('muted', theme, noColor);
+  const activeTheme = useTheme(explicitTheme);
+  const borderColor = resolveThemeColor('border', activeTheme, noColor);
+  const primaryColor = resolveThemeColor('primary', activeTheme, noColor);
+  const mutedColor = resolveThemeColor('foregroundMuted', activeTheme, noColor);
+
+  const effectivePaddingX = paddingX ?? activeTheme.tokens.spacing.xs;
+  const effectivePaddingY = paddingY ?? activeTheme.tokens.spacing.none;
 
   const hasHeader = Boolean(title || metadata);
 
@@ -38,8 +43,8 @@ export const Panel: React.FC<PanelProps> = ({
       width={width}
       borderStyle={borderStyle === 'none' ? undefined : borderStyle}
       borderColor={borderColor}
-      paddingX={paddingX}
-      paddingY={paddingY}
+      paddingX={effectivePaddingX}
+      paddingY={effectivePaddingY}
     >
       {hasHeader ? (
         <Box

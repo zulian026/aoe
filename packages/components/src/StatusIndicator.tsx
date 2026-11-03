@@ -1,7 +1,8 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import { OBSIDIAN_THEME, type ThemeDefinition } from '@aoe/themes';
-import { resolveThemeColor, getSymbol } from './utils/theme-resolver.js';
+import type { AoeTheme } from '@aoe/themes';
+import { resolveStatusColor, resolveThemeColor, getSymbol } from './utils/theme-resolver.js';
+import { useTheme } from './theme-context.js';
 
 export type StatusType =
   'running' | 'completed' | 'failed' | 'blocked' | 'warning' | 'idle' | 'cancelled';
@@ -11,7 +12,7 @@ export interface StatusIndicatorProps {
   label?: string;
   animated?: boolean;
   spinnerFrame?: number;
-  theme?: ThemeDefinition;
+  theme?: AoeTheme;
   noColor?: boolean;
   unicode?: boolean;
 }
@@ -23,62 +24,55 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   label,
   animated = false,
   spinnerFrame = 0,
-  theme = OBSIDIAN_THEME,
+  theme: explicitTheme,
   noColor = false,
   unicode = true,
 }) => {
+  const activeTheme = useTheme(explicitTheme);
+
   let symbolText = '';
-  let colorToken: keyof typeof theme.tokens = 'muted';
 
   switch (status) {
     case 'running':
-      colorToken = 'warning';
       if (animated && unicode) {
         const frameIndex = Math.abs(spinnerFrame) % SPINNER_FRAMES.length;
         symbolText = SPINNER_FRAMES[frameIndex];
       } else {
-        symbolText = unicode ? getSymbol('bullet', true) : '[RUN]';
+        symbolText = getSymbol('running', unicode, activeTheme);
       }
       break;
 
     case 'completed':
-      colorToken = 'success';
-      symbolText = unicode ? getSymbol('check', true) : '[OK]';
+      symbolText = getSymbol('completed', unicode, activeTheme);
       break;
 
     case 'failed':
-      colorToken = 'error';
-      symbolText = unicode ? getSymbol('cross', true) : '[FAIL]';
+      symbolText = getSymbol('failure', unicode, activeTheme);
       break;
 
     case 'blocked':
-      colorToken = 'warning';
-      symbolText = unicode ? getSymbol('square', true) : '[BLOCKED]';
+      symbolText = getSymbol('blocked', unicode, activeTheme);
       break;
 
     case 'warning':
-      colorToken = 'warning';
-      symbolText = unicode ? getSymbol('triangle', true) : '[WARN]';
+      symbolText = getSymbol('warning', unicode, activeTheme);
       break;
 
     case 'idle':
-      colorToken = 'muted';
-      symbolText = unicode ? getSymbol('circle', true) : '[IDLE]';
+      symbolText = unicode ? getSymbol('pending', true, activeTheme) : '[IDLE]';
       break;
 
     case 'cancelled':
-      colorToken = 'muted';
-      symbolText = unicode ? getSymbol('dash', true) : '[CANCELLED]';
+      symbolText = unicode ? getSymbol('cancelled', true, activeTheme) : '[CANCELLED]';
       break;
 
     default:
-      colorToken = 'muted';
       symbolText = unicode ? '?' : '[?]';
       break;
   }
 
-  const textColor = resolveThemeColor(colorToken, theme, noColor);
-  const labelColor = resolveThemeColor('muted', theme, noColor);
+  const textColor = resolveStatusColor(status, activeTheme, noColor);
+  const labelColor = resolveThemeColor('foregroundMuted', activeTheme, noColor);
 
   return (
     <Box flexDirection="row" alignItems="center">

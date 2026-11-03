@@ -1,7 +1,13 @@
 import React from 'react';
 import { render as inkRender, type Instance as InkInstance } from 'ink';
 import type { SessionSnapshot } from '@aoe/core';
-import { OBSIDIAN_THEME, type ThemeDefinition } from '@aoe/themes';
+import {
+  OBSIDIAN_THEME,
+  defaultRegistry,
+  validateTheme,
+  type AoeTheme,
+  type ThemeDefinition,
+} from '@aoe/themes';
 import type { LogItem, ResultItem } from '@aoe/components';
 import {
   isInteractiveSuitable,
@@ -23,7 +29,7 @@ export interface TerminalRendererOptions {
   engine?: EngineLike;
   sessionId?: string;
   mode?: RendererMode;
-  theme?: ThemeDefinition;
+  theme?: string | AoeTheme | ThemeDefinition;
   stdout?: NodeJS.WriteStream;
   stdin?: NodeJS.ReadStream;
   useAlternateScreen?: boolean;
@@ -44,7 +50,7 @@ export class TerminalRenderer {
   private readonly engine?: EngineLike;
   private readonly sessionId?: string;
   private readonly requestedMode: RendererMode;
-  private readonly theme: ThemeDefinition;
+  private theme: AoeTheme;
   private readonly stdout: NodeJS.WriteStream;
   private readonly stdin?: NodeJS.ReadStream;
   private readonly useAlternateScreen: boolean;
@@ -73,7 +79,7 @@ export class TerminalRenderer {
     this.engine = options.engine;
     this.sessionId = options.sessionId;
     this.requestedMode = options.mode ?? 'auto';
-    this.theme = options.theme ?? OBSIDIAN_THEME;
+    this.theme = this.resolveThemeInput(options.theme);
     this.stdout = options.stdout ?? process.stdout;
     this.stdin = options.stdin ?? process.stdin;
     this.useAlternateScreen = options.useAlternateScreen ?? false;
@@ -81,6 +87,71 @@ export class TerminalRenderer {
     this.noColor = options.noColor ?? isNoColor();
     this.unicode = options.unicode ?? true;
     this.dimensions = getTerminalDimensions(this.stdout);
+  }
+
+  /**
+   * Resolves theme input from ID or theme object with obsidian fallback.
+   */
+  private resolveThemeInput(themeInput?: string | AoeTheme | ThemeDefinition): AoeTheme {
+    if (!themeInput) return OBSIDIAN_THEME;
+    if (typeof themeInput === 'string') {
+      try {
+        return defaultRegistry.get(themeInput);
+      } catch (err) {
+        if (process.env.NODE_ENV !== 'test') {
+          console.warn(
+            `[TerminalRenderer] Unknown theme id "${themeInput}", falling back to obsidian: ${(err as Error).message}`,
+          );
+        }
+        return OBSIDIAN_THEME;
+      }
+    }
+    try {
+      return validateTheme(themeInput);
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'test') {
+        console.warn(
+          `[TerminalRenderer] Invalid theme object, falling back to obsidian: ${(err as Error).message}`,
+        );
+      }
+      return OBSIDIAN_THEME;
+    }
+  }
+
+  /**
+   * Gets the currently active theme.
+   */
+  public getTheme(): AoeTheme {
+    return this.theme;
+  }
+
+  /**
+   * Switches theme at runtime and re-renders active snapshot immediately without restarting subscriptions.
+   */
+  public setTheme(themeInput: string | AoeTheme | ThemeDefinition): boolean {
+    if (!themeInput) return false;
+    let resolved: AoeTheme;
+    try {
+      if (typeof themeInput === 'string') {
+        resolved = defaultRegistry.get(themeInput);
+      } else {
+        resolved = validateTheme(themeInput);
+      }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'test') {
+        console.warn(`[TerminalRenderer] Failed to set theme: ${(err as Error).message}`);
+      }
+      return false;
+    }
+
+    this.theme = resolved;
+    if (this.staticRenderer) {
+      this.staticRenderer.setTheme(resolved);
+    }
+    if (this.latestSnapshot) {
+      this.renderSnapshot(this.latestSnapshot);
+    }
+    return true;
   }
 
   /**

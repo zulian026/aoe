@@ -1,7 +1,8 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import { OBSIDIAN_THEME, type ThemeDefinition } from '@aoe/themes';
+import type { AoeTheme } from '@aoe/themes';
 import { resolveThemeColor, getSymbol } from './utils/theme-resolver.js';
+import { useTheme } from './theme-context.js';
 
 export type ResultCategoryType = 'artifact' | 'metric' | 'summary' | 'test_results';
 
@@ -17,7 +18,7 @@ export interface ResultViewProps {
   results: ResultItem[];
   sessionStatus?: string;
   width?: number;
-  theme?: ThemeDefinition;
+  theme?: AoeTheme;
   noColor?: boolean;
   unicode?: boolean;
 }
@@ -26,15 +27,16 @@ export const ResultView: React.FC<ResultViewProps> = ({
   results,
   sessionStatus,
   width,
-  theme = OBSIDIAN_THEME,
+  theme: explicitTheme,
   noColor = false,
   unicode = true,
 }) => {
-  const mutedColor = resolveThemeColor('muted', theme, noColor);
-  const successColor = resolveThemeColor('success', theme, noColor);
-  const errorColor = resolveThemeColor('error', theme, noColor);
-  const warningColor = resolveThemeColor('warning', theme, noColor);
-  const infoColor = resolveThemeColor('info', theme, noColor);
+  const activeTheme = useTheme(explicitTheme);
+  const mutedColor = resolveThemeColor('foregroundMuted', activeTheme, noColor);
+  const successColor = resolveThemeColor('success', activeTheme, noColor);
+  const errorColor = resolveThemeColor('error', activeTheme, noColor);
+  const warningColor = resolveThemeColor('warning', activeTheme, noColor);
+  const infoColor = resolveThemeColor('info', activeTheme, noColor);
 
   if (!results || results.length === 0) {
     return (
@@ -79,13 +81,13 @@ export const ResultView: React.FC<ResultViewProps> = ({
         let statusSymbol = '';
         let statusColor = mutedColor;
         if (result.status === 'success') {
-          statusSymbol = `${getSymbol('check', unicode)} `;
+          statusSymbol = `${getSymbol('check', unicode, activeTheme)} `;
           statusColor = successColor;
         } else if (result.status === 'failure') {
-          statusSymbol = `${getSymbol('cross', unicode)} `;
+          statusSymbol = `${getSymbol('cross', unicode, activeTheme)} `;
           statusColor = errorColor;
         } else if (result.status === 'incomplete') {
-          statusSymbol = `${getSymbol('triangle', unicode)} `;
+          statusSymbol = `${getSymbol('triangle', unicode, activeTheme)} `;
           statusColor = warningColor;
         }
 

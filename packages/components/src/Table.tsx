@@ -1,7 +1,8 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import { OBSIDIAN_THEME, type ThemeDefinition } from '@aoe/themes';
+import type { AoeTheme } from '@aoe/themes';
 import { resolveThemeColor } from './utils/theme-resolver.js';
+import { useTheme } from './theme-context.js';
 
 export interface TableColumn<T = Record<string, unknown>> {
   key: keyof T | string;
@@ -13,27 +14,25 @@ export interface TableColumn<T = Record<string, unknown>> {
 export interface TableProps<T = Record<string, unknown>> {
   columns: TableColumn<T>[];
   data: T[];
-  theme?: ThemeDefinition;
+  theme?: AoeTheme;
   noColor?: boolean;
 }
 
 export const Table = <T extends Record<string, unknown>>({
   columns,
   data,
-  theme = OBSIDIAN_THEME,
+  theme: explicitTheme,
   noColor = false,
 }: TableProps<T>): React.ReactElement => {
-  const primaryColor = resolveThemeColor('primary', theme, noColor);
-  const mutedColor = resolveThemeColor('muted', theme, noColor);
+  const activeTheme = useTheme(explicitTheme);
+  const primaryColor = resolveThemeColor('primary', activeTheme, noColor);
+  const mutedColor = resolveThemeColor('foregroundMuted', activeTheme, noColor);
+  const borderColor = resolveThemeColor('border', activeTheme, noColor);
 
   return (
     <Box flexDirection="column">
       {/* Header Row */}
-      <Box
-        flexDirection="row"
-        borderBottom={true}
-        borderColor={resolveThemeColor('border', theme, noColor)}
-      >
+      <Box flexDirection="row" borderBottom={true} borderColor={borderColor}>
         {columns.map((col, idx) => (
           <Box key={String(col.key) || idx} width={col.width ?? 15} paddingRight={1}>
             <Text bold color={primaryColor}>

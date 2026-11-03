@@ -1,8 +1,9 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import { OBSIDIAN_THEME, type ThemeDefinition } from '@aoe/themes';
+import type { AoeTheme } from '@aoe/themes';
 import { resolveThemeColor } from './utils/theme-resolver.js';
 import { maskSecrets, sanitizeTerminalText } from './utils/sanitize.js';
+import { useTheme } from './theme-context.js';
 
 export type LogLevelType = 'debug' | 'info' | 'warn' | 'error';
 
@@ -17,7 +18,7 @@ export interface ExecutionLogProps {
   logs: LogItem[];
   maxLines?: number;
   mode?: 'compact' | 'expanded';
-  theme?: ThemeDefinition;
+  theme?: AoeTheme;
   noColor?: boolean;
 }
 
@@ -25,13 +26,14 @@ export const ExecutionLog: React.FC<ExecutionLogProps> = ({
   logs,
   maxLines = 10,
   mode = 'compact',
-  theme = OBSIDIAN_THEME,
+  theme: explicitTheme,
   noColor = false,
 }) => {
-  const mutedColor = resolveThemeColor('muted', theme, noColor);
-  const infoColor = resolveThemeColor('info', theme, noColor);
-  const warningColor = resolveThemeColor('warning', theme, noColor);
-  const errorColor = resolveThemeColor('error', theme, noColor);
+  const activeTheme = useTheme(explicitTheme);
+  const mutedColor = resolveThemeColor('foregroundMuted', activeTheme, noColor);
+  const infoColor = resolveThemeColor('info', activeTheme, noColor);
+  const warningColor = resolveThemeColor('warning', activeTheme, noColor);
+  const errorColor = resolveThemeColor('error', activeTheme, noColor);
 
   if (!logs || logs.length === 0) {
     return (

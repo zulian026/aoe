@@ -1,8 +1,9 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import { OBSIDIAN_THEME, type ThemeDefinition } from '@aoe/themes';
+import type { AoeTheme } from '@aoe/themes';
 import { resolveThemeColor, getSymbol } from './utils/theme-resolver.js';
 import { clamp } from './utils/sanitize.js';
+import { useTheme } from './theme-context.js';
 
 export interface ProgressBarProps {
   completedWork?: number;
@@ -14,7 +15,7 @@ export interface ProgressBarProps {
   mode?: 'compact' | 'detailed';
   unit?: string;
   description?: string;
-  theme?: ThemeDefinition;
+  theme?: AoeTheme;
   noColor?: boolean;
   unicode?: boolean;
 }
@@ -29,10 +30,11 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   mode = 'detailed',
   unit,
   description,
-  theme = OBSIDIAN_THEME,
+  theme: explicitTheme,
   noColor = false,
   unicode = true,
 }) => {
+  const activeTheme = useTheme(explicitTheme);
   const barWidth = clamp(width, 5, 80);
 
   // Determine if progress is determinate or indeterminate
@@ -54,15 +56,15 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
     }
   }
 
-  const primaryColor = resolveThemeColor('primary', theme, noColor);
-  const successColor = resolveThemeColor('success', theme, noColor);
-  const warningColor = resolveThemeColor('warning', theme, noColor);
-  const mutedColor = resolveThemeColor('muted', theme, noColor);
+  const primaryColor = resolveThemeColor('primary', activeTheme, noColor);
+  const successColor = resolveThemeColor('success', activeTheme, noColor);
+  const warningColor = resolveThemeColor('warning', activeTheme, noColor);
+  const mutedColor = resolveThemeColor('foregroundMuted', activeTheme, noColor);
 
   // If indeterminate, render unknown progress bar
   if (safePct === null) {
     const pad = Math.max(1, Math.floor((barWidth - 3) / 2));
-    const emptyChar = getSymbol('progressEmpty', unicode);
+    const emptyChar = getSymbol('progressEmpty', unicode, activeTheme);
     const indetBar = `[${emptyChar.repeat(pad)}?${emptyChar.repeat(pad)}]`;
 
     return (
@@ -77,8 +79,8 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   // Build the bar representation
   const filledCount = clamp(Math.round((safePct / 100) * barWidth), 0, barWidth);
   const emptyCount = barWidth - filledCount;
-  const filledChar = getSymbol('progressFilled', unicode);
-  const emptyChar = getSymbol('progressEmpty', unicode);
+  const filledChar = getSymbol('progressFilled', unicode, activeTheme);
+  const emptyChar = getSymbol('progressEmpty', unicode, activeTheme);
 
   const filledStr = filledChar.repeat(filledCount);
   const emptyStr = emptyChar.repeat(emptyCount);

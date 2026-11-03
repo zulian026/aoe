@@ -1,8 +1,9 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import { OBSIDIAN_THEME, type ThemeDefinition } from '@aoe/themes';
+import type { AoeTheme } from '@aoe/themes';
 import { resolveThemeColor, getSymbol } from './utils/theme-resolver.js';
 import { truncatePath } from './utils/sanitize.js';
+import { useTheme } from './theme-context.js';
 
 export type FileActionType = 'CREATED' | 'MODIFIED' | 'DELETED' | 'RENAMED';
 
@@ -26,7 +27,7 @@ export interface FileChangeViewProps {
   changes: FileChangeItem[];
   maxItems?: number;
   width?: number;
-  theme?: ThemeDefinition;
+  theme?: AoeTheme;
   noColor?: boolean;
   unicode?: boolean;
 }
@@ -35,15 +36,16 @@ export const FileChangeView: React.FC<FileChangeViewProps> = ({
   changes,
   maxItems = 15,
   width,
-  theme = OBSIDIAN_THEME,
+  theme: explicitTheme,
   noColor = false,
   unicode = true,
 }) => {
-  const mutedColor = resolveThemeColor('muted', theme, noColor);
-  const successColor = resolveThemeColor('success', theme, noColor);
-  const warningColor = resolveThemeColor('warning', theme, noColor);
-  const errorColor = resolveThemeColor('error', theme, noColor);
-  const infoColor = resolveThemeColor('info', theme, noColor);
+  const activeTheme = useTheme(explicitTheme);
+  const mutedColor = resolveThemeColor('foregroundMuted', activeTheme, noColor);
+  const successColor = resolveThemeColor('success', activeTheme, noColor);
+  const warningColor = resolveThemeColor('warning', activeTheme, noColor);
+  const errorColor = resolveThemeColor('error', activeTheme, noColor);
+  const infoColor = resolveThemeColor('info', activeTheme, noColor);
 
   if (!changes || changes.length === 0) {
     return (
@@ -101,7 +103,9 @@ export const FileChangeView: React.FC<FileChangeViewProps> = ({
 
         // Evidence badge
         const isVerified = change.evidence?.verifiedOnDisk === true;
-        const evidenceBadge = isVerified ? ` [${getSymbol('disk', unicode)}]` : ' [unverified]';
+        const evidenceBadge = isVerified
+          ? ` [${getSymbol('disk', unicode, activeTheme)}]`
+          : ' [unverified]';
         const evidenceColor = isVerified ? successColor : mutedColor;
 
         // Display path

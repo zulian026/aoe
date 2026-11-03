@@ -1,9 +1,10 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import { OBSIDIAN_THEME, type ThemeDefinition } from '@aoe/themes';
+import type { AoeTheme } from '@aoe/themes';
 import { StatusIndicator, type StatusType } from './StatusIndicator.js';
 import { resolveThemeColor, getSymbol } from './utils/theme-resolver.js';
 import { formatDuration, clamp } from './utils/sanitize.js';
+import { useTheme } from './theme-context.js';
 
 export interface TaskSummaryItem {
   id: string;
@@ -22,7 +23,7 @@ export interface TaskSummaryProps {
   tasks: TaskSummaryItem[];
   maxDepth?: number;
   width?: number;
-  theme?: ThemeDefinition;
+  theme?: AoeTheme;
   noColor?: boolean;
   unicode?: boolean;
 }
@@ -31,12 +32,13 @@ export const TaskSummary: React.FC<TaskSummaryProps> = ({
   tasks,
   maxDepth = 3,
   width,
-  theme = OBSIDIAN_THEME,
+  theme: explicitTheme,
   noColor = false,
   unicode = true,
 }) => {
-  const mutedColor = resolveThemeColor('muted', theme, noColor);
-  const secondaryColor = resolveThemeColor('secondary', theme, noColor);
+  const activeTheme = useTheme(explicitTheme);
+  const mutedColor = resolveThemeColor('foregroundMuted', activeTheme, noColor);
+  const secondaryColor = resolveThemeColor('secondary', activeTheme, noColor);
 
   if (!tasks || tasks.length === 0) {
     return (
@@ -109,8 +111,8 @@ export const TaskSummary: React.FC<TaskSummaryProps> = ({
         const connector =
           depth > 0
             ? isLastChild
-              ? getSymbol('treeLastBranch', unicode)
-              : getSymbol('treeBranch', unicode)
+              ? getSymbol('treeLastBranch', unicode, activeTheme)
+              : getSymbol('treeBranch', unicode, activeTheme)
             : '';
 
         const durationText = item.durationMs ? ` (${formatDuration(item.durationMs)})` : '';
@@ -127,7 +129,7 @@ export const TaskSummary: React.FC<TaskSummaryProps> = ({
             </Text>
             <StatusIndicator
               status={item.status}
-              theme={theme}
+              theme={activeTheme}
               noColor={noColor}
               unicode={unicode}
             />
