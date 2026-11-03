@@ -18,6 +18,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@aoe/protocol": "workspace:*"
+    "@aoe/protocol": "workspace:*",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@aoe/core": "workspace:*",
+    "@aoe/renderer": "workspace:*"
   }
 }

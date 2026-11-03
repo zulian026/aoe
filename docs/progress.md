@@ -8,8 +8,8 @@
 | **M03**   | **Core Engine**              | Event stream processing, session manager, state machine, lifecycle                  | **Completed** | Commit `d783235`                  |
 | **M04**   | **Terminal Renderer**        | Ink components, terminal screen manager, alternate screen buffer                    | **Completed** | Commit `dfa757f`                  |
 | **M05**   | **Theme Engine**             | Theme registry, Obsidian dark, light, high-contrast, custom tokens, resolver        | **Completed** | 208 tests passing across monorepo |
-| **M06**   | **Agent Integration**        | Adapters for Codex, Claude Code, Gemini CLI, OpenCode, generic stream               | Pending       | Recommended next milestone        |
-| **M07**   | **CLI Tooling**              | `aoe` commands (`render`, `pipe`, `theme`, `doctor`, `skill`)                       | Pending       | Blocked on M06                    |
+| **M06**   | **Agent Integration**        | Adapters for Codex, Claude Code, Gemini CLI, OpenCode, generic stream               | **Completed** | 251 tests passing across monorepo |
+| **M07**   | **CLI Tooling**              | `aoe` commands (`render`, `pipe`, `theme`, `doctor`, `skill`)                       | Pending       | Recommended next milestone        |
 | **M08**   | **Release Preparation**      | Packaging, end-to-end verification, performance profiling, release                  | Pending       | Blocked on M07                    |
 
 ---
@@ -114,4 +114,38 @@
   - `docs/development/`:
     - `custom-themes.md`: Step-by-step developer guide for defining, validating, and registering custom themes.
   - Comprehensive unit and integration test suites: 208 passing tests across monorepo (37 new tests for M05 across themes, components, and renderer).
+- **Verification**: 100% test pass rate, clean TypeScript build, clean linting, clean formatting.
+
+### M06: Universal Agent Integration
+
+- **Goal**: Implement universal adapter architecture in `@aoe/adapters` connecting external AI coding agents (Claude Code, Gemini CLI, Generic JSONL) to AOE, normalizing proprietary hooks and streams into canonical `@aoe/protocol` envelopes while enforcing strict privacy and isolation.
+- **Status**: Completed.
+- **Deliverables**:
+  - `packages/adapters/src/`:
+    - `contracts/`:
+      - `adapter.ts`: `AgentAdapter`, `AdapterLifecycleState`, legacy `AgentKind` / `SUPPORTED_AGENTS`.
+      - `context.ts`: `AdapterContext`, `DetectionConfidence`, `AdapterDetectionResult`.
+      - `session.ts`: `AdapterSession`, `DefaultAdapterSession`, `createAdapterSession` factory with monotonic sequence and task mapping.
+    - `errors/index.ts`: Typed domain error hierarchy (`AdapterError`, `AdapterNotFoundError`, `DuplicateAdapterError`, `AdapterParsingError`, `AdapterValidationError`, `AdapterSessionError`).
+    - `utils/sanitizer.ts`: `maskSecrets` (Bearer, Anthropic `sk-...`, Google `AIza...`, AWS, passwords), `stripPrivateReasoning` (`<thought>`, `<scratchpad>`, `<antThinking>`), `sanitizeAgentText`, `sanitizePayload`.
+    - `generic/`:
+      - `jsonl-parser.ts`: Streaming chunk parser with line buffering, 1MB bounded line size, CRLF handling, and `flush()`.
+      - `jsonl-adapter.ts`: Stream adapter supporting both direct canonical protocol envelopes and generic event structures.
+    - `agents/claude-code/`:
+      - `schema.ts`: Zod schemas for Claude Code hook payloads and stream-JSON events.
+      - `mapper.ts`: `ClaudeCodeMapper` mapping hooks (`SessionStart`, `PreToolUse`, `PostToolUse`, `PostToolUseFailure`) to canonical events.
+      - `adapter.ts`: `ClaudeCodeAdapter` with detection heuristics and payload normalization.
+    - `agents/gemini-cli/`:
+      - `schema.ts`: Zod schemas for Gemini CLI hook payloads and stream-JSON events.
+      - `mapper.ts`: `GeminiCliMapper` mapping hooks (`SessionStart`, `BeforeAgent`, `BeforeTool`, `AfterTool`) to canonical events.
+      - `adapter.ts`: `GeminiCliAdapter` with detection heuristics and payload normalization.
+    - `manager/adapter-manager.ts`: `AdapterManager` with adapter registration, confidence cascade detection, session lifecycle tracking, event routing, listener exception isolation, and teardown cleanup.
+  - `docs/architecture/`:
+    - `agent-integration.md`: Universal adapter architecture, lifecycle, contracts, and privacy guarantees.
+  - `docs/integrations/`:
+    - `agent-compatibility.md`: Compatibility matrix across Claude Code, Gemini CLI, Generic JSONL, and candidate agents.
+    - `generic-jsonl.md`: Specification, streaming line buffering, limits, and payload formats.
+  - `docs/development/`:
+    - `creating-an-adapter.md`: Step-by-step developer guide for creating and testing custom agent adapters.
+  - Comprehensive unit and integration test suites: 251 passing tests across monorepo (43 new tests added for M06 across manager, claude-code, gemini-cli, jsonl, and end-to-end adapter-to-engine-to-renderer pipelines).
 - **Verification**: 100% test pass rate, clean TypeScript build, clean linting, clean formatting.

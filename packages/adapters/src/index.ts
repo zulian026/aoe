@@ -1,17 +1,17 @@
-import { type ProtocolEnvelope } from '@aoe/protocol';
+// Contracts
+export * from './contracts/index.js';
 
-export type AgentKind = 'codex' | 'claude-code' | 'gemini-cli' | 'opencode' | 'generic';
+// Errors
+export * from './errors/index.js';
 
-export interface AgentAdapter {
-  readonly kind: AgentKind;
-  canHandle(input: unknown): boolean;
-  transform(rawChunk: string): ProtocolEnvelope[];
-}
+// Utilities
+export * from './utils/index.js';
 
-export const SUPPORTED_AGENTS: readonly AgentKind[] = [
-  'codex',
-  'claude-code',
-  'gemini-cli',
-  'opencode',
-  'generic',
-] as const;
+// Manager
+export * from './manager/index.js';
+
+// Generic Adapter
+export * from './generic/index.js';
+
+// Concrete Agent Adapters
+export * from './agents/index.js';

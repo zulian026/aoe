@@ -53,6 +53,16 @@ importers:
       '@aoe/protocol':
         specifier: workspace:*
         version: link:../protocol
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+    devDependencies:
+      '@aoe/core':
+        specifier: workspace:*
+        version: link:../core
+      '@aoe/renderer':
+        specifier: workspace:*
+        version: link:../renderer
 
   packages/components:
     dependencies:
