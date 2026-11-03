@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -b",
-    "clean": "pnpm -r exec rm -rf dist *.tsbuildinfo",
+    "clean": "pnpm -r exec rm -rf dist *.tsbuildinfo tsconfig.tsbuildinfo",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",

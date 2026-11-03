@@ -1,29 +1,10 @@
-import { type ThemeDefinition } from '@aoe/themes';
+export * from './environment.js';
+export * from './static-renderer.js';
+export * from './interactive-app.js';
+export * from './terminal-renderer.js';
 
-export interface RendererOptions {
-  theme?: ThemeDefinition;
-  isTTY?: boolean;
-  colorDepth?: number;
-  useAlternateScreen?: boolean;
-}
-
-export interface RenderState {
-  sessionId: string;
-  activeTasks: number;
-  completedTasks: number;
-  hasErrors: boolean;
-}
-
-export interface TerminalRenderer {
-  initialize(): Promise<void>;
-  render(state: RenderState): void;
-  dispose(): Promise<void>;
-}
-
-export const createRendererStub = (_options: RendererOptions = {}): TerminalRenderer => {
-  return {
-    async initialize() {},
-    render(_state: RenderState) {},
-    async dispose() {},
-  };
-};
+// Legacy compatibility aliases
+export type {
+  TerminalRendererOptions as RendererOptions,
+  RenderState,
+} from './terminal-renderer.js';

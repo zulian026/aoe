@@ -4,8 +4,8 @@
     { "path": "packages/protocol" },
     { "path": "packages/themes" },
     { "path": "packages/components" },
-    { "path": "packages/renderer" },
     { "path": "packages/core" },
+    { "path": "packages/renderer" },
     { "path": "packages/adapters" },
     { "path": "apps/cli" }
   ]

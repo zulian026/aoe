@@ -19,6 +19,14 @@
   },
   "dependencies": {
     "@aoe/components": "workspace:*",
-    "@aoe/themes": "workspace:*"
+    "@aoe/core": "workspace:*",
+    "@aoe/protocol": "workspace:*",
+    "@aoe/themes": "workspace:*",
+    "ink": "^8.0.0",
+    "react": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "ink-testing-library": "^4.0.0"
   }
 }

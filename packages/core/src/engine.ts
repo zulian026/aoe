@@ -1,5 +1,4 @@
 import type { AoeEvent } from '@aoe/protocol';
-import type { TerminalRenderer } from '@aoe/renderer';
 import type {
   EngineConfig,
   EventProcessingResult,
@@ -11,6 +10,16 @@ import { SessionManager, type CreateSessionOptions } from './session-manager.js'
 import { EventStore, type EventQueryOptions } from './event-store.js';
 import { StateDispatcher } from './state-dispatcher.js';
 import { EventProcessor } from './event-processor.js';
+
+export interface EngineRenderer {
+  initialize?(): Promise<void>;
+  render?(state: unknown): void;
+  dispose?(): Promise<void>;
+  start?(): Promise<void>;
+  stop?(): Promise<void> | void;
+}
+
+export type TerminalRenderer = EngineRenderer;
 
 export interface EngineOptions extends EngineConfig {
   renderer?: TerminalRenderer;
