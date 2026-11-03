@@ -35,7 +35,7 @@ Tier 6: Next Actions        ─── Concrete, numbered next steps for develope
 
 _For small, single-step tasks (e.g., answering a quick factual question), use the compact structure: `**Task Identity** — [STATUS]: [Direct answer with file references]`._
 
-See details in [output-hierarchy.md](file:///home/zyan/Projects/aoe/skills/aoe/references/output-hierarchy.md).
+See details in [output-hierarchy.md](references/output-hierarchy.md).
 
 ---
 
@@ -53,7 +53,7 @@ Always assign tasks one of the seven canonical semantic states:
 | `CANCELLED` | Execution aborted by user request or strategic termination.      | User aborts          |
 | `WARNING`   | Finished successfully but with non-fatal caveats or anomalies.   | Partial success      |
 
-See details in [status-system.md](file:///home/zyan/Projects/aoe/skills/aoe/references/status-system.md).
+See details in [status-system.md](references/status-system.md).
 
 ---
 
@@ -64,34 +64,34 @@ See details in [status-system.md](file:///home/zyan/Projects/aoe/skills/aoe/refe
 - Use milestone checklists (`- [x]` done, `- [/]` in progress, `- [ ]` pending) rather than arbitrary percentages.
 - Percentages are permitted only when mathematically derived from an enumerated set (e.g., `3/6 tests = 50%`).
 - Avoid repetitive progress spam; emit updates only on milestone boundary transitions.
-- See details in [progress-reporting.md](file:///home/zyan/Projects/aoe/skills/aoe/references/progress-reporting.md).
+- See details in [progress-reporting.md](references/progress-reporting.md).
 
 ### B. File Modifications
 
 - Explicitly categorize changes: `CREATED`, `MODIFIED`, `DELETED`, or `RENAMED`.
 - Include file paths, line deltas (`+lines / -lines`), and functional descriptions.
 - Never list a file as modified without file system verification.
-- See details in [file-changes.md](file:///home/zyan/Projects/aoe/skills/aoe/references/file-changes.md).
+- See details in [file-changes.md](references/file-changes.md).
 
 ### C. Commands & Execution
 
 - Display the exact command executed and process exit code (`# Exit code: 0`).
 - Segregate standard error from standard output.
 - Never hide or suppress failure output. Truncate repetitive stdout while preserving error context.
-- See details in [command-output.md](file:///home/zyan/Projects/aoe/skills/aoe/references/command-output.md).
+- See details in [command-output.md](references/command-output.md).
 
 ### D. Diagnostics & Debugging
 
 - Categorize by severity: `ERROR`, `WARNING`, `INFO`.
 - Strictly separate **Confirmed Facts** (proven by logs) from **Hypotheses** (suspicions under test).
 - Include file location (`path:line:col`), root cause, and concrete remediation steps.
-- See details in [diagnostics.md](file:///home/zyan/Projects/aoe/skills/aoe/references/diagnostics.md).
+- See details in [diagnostics.md](references/diagnostics.md).
 
 ### E. Visual Density & Layout
 
 - Target 80-to-100 column terminal buffers; avoid wide, overflowing tables.
 - Use standard Unicode glyphs (`✓`, `✖`, `▲`, `●`, `○`) with clean ASCII fallbacks (`[v]`, `[x]`, `[!]`).
-- See details in [visual-formatting.md](file:///home/zyan/Projects/aoe/skills/aoe/references/visual-formatting.md).
+- See details in [visual-formatting.md](references/visual-formatting.md).
 
 ---
 
@@ -106,7 +106,7 @@ AOE functions autonomously without the engine binary. Follow this non-intrusive 
    - Never attempt to install `@aoe/cli` or dependencies automatically.
    - Never break or fail execution if the engine is absent.
 
-See details in [engine-integration.md](file:///home/zyan/Projects/aoe/skills/aoe/references/engine-integration.md).
+See details in [engine-integration.md](references/engine-integration.md).
 
 ---
 
@@ -114,14 +114,14 @@ See details in [engine-integration.md](file:///home/zyan/Projects/aoe/skills/aoe
 
 Detailed specifications for each presentation domain:
 
-- [Output Hierarchy Specification](file:///home/zyan/Projects/aoe/skills/aoe/references/output-hierarchy.md)
-- [Status System Specification](file:///home/zyan/Projects/aoe/skills/aoe/references/status-system.md)
-- [Progress Reporting Specification](file:///home/zyan/Projects/aoe/skills/aoe/references/progress-reporting.md)
-- [File Changes Specification](file:///home/zyan/Projects/aoe/skills/aoe/references/file-changes.md)
-- [Command Output Specification](file:///home/zyan/Projects/aoe/skills/aoe/references/command-output.md)
-- [Diagnostics Specification](file:///home/zyan/Projects/aoe/skills/aoe/references/diagnostics.md)
-- [Visual Formatting Specification](file:///home/zyan/Projects/aoe/skills/aoe/references/visual-formatting.md)
-- [Engine Integration & Fallback Specification](file:///home/zyan/Projects/aoe/skills/aoe/references/engine-integration.md)
+- [Output Hierarchy Specification](references/output-hierarchy.md)
+- [Status System Specification](references/status-system.md)
+- [Progress Reporting Specification](references/progress-reporting.md)
+- [File Changes Specification](references/file-changes.md)
+- [Command Output Specification](references/command-output.md)
+- [Diagnostics Specification](references/diagnostics.md)
+- [Visual Formatting Specification](references/visual-formatting.md)
+- [Engine Integration & Fallback Specification](references/engine-integration.md)
 
 ---
 
@@ -129,9 +129,9 @@ Detailed specifications for each presentation domain:
 
 Real-world output templates conforming to AOE standards:
 
-- [Task In Progress Example](file:///home/zyan/Projects/aoe/skills/aoe/examples/task-in-progress.md)
-- [Task Completed Example](file:///home/zyan/Projects/aoe/skills/aoe/examples/task-completed.md)
-- [Task Failed Example](file:///home/zyan/Projects/aoe/skills/aoe/examples/task-failed.md)
-- [Code Review Example](file:///home/zyan/Projects/aoe/skills/aoe/examples/code-review.md)
-- [Implementation Report Example](file:///home/zyan/Projects/aoe/skills/aoe/examples/implementation-report.md)
-- [Debugging Session Example](file:///home/zyan/Projects/aoe/skills/aoe/examples/debugging-session.md)
+- [Task In Progress Example](examples/task-in-progress.md)
+- [Task Completed Example](examples/task-completed.md)
+- [Task Failed Example](examples/task-failed.md)
+- [Code Review Example](examples/code-review.md)
+- [Implementation Report Example](examples/implementation-report.md)
+- [Debugging Session Example](examples/debugging-session.md)
