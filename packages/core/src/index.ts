@@ -1,42 +1,20 @@
-import { type ProtocolEnvelope } from '@aoe/protocol';
-import { type TerminalRenderer } from '@aoe/renderer';
+export * from './types.js';
+export * from './errors.js';
+export * from './session-manager.js';
+export * from './sequence-tracker.js';
+export * from './deduplication.js';
+export * from './lifecycle-manager.js';
+export * from './task-manager.js';
+export * from './progress-tracker.js';
+export * from './event-store.js';
+export * from './state-dispatcher.js';
+export * from './event-processor.js';
+export * from './engine.js';
 
+// Legacy M00 SessionState interface
 export interface SessionState {
   id: string;
   startedAt: string;
   status: 'active' | 'paused' | 'completed' | 'failed';
   eventsProcessed: number;
-}
-
-export interface EngineOptions {
-  renderer?: TerminalRenderer;
-}
-
-export class Engine {
-  private session: SessionState | null = null;
-  private renderer?: TerminalRenderer;
-
-  constructor(options: EngineOptions = {}) {
-    this.renderer = options.renderer;
-  }
-
-  public getRenderer(): TerminalRenderer | undefined {
-    return this.renderer;
-  }
-
-  public getSession(): SessionState | null {
-    return this.session;
-  }
-
-  public processEvent(envelope: ProtocolEnvelope): void {
-    if (!this.session) {
-      this.session = {
-        id: envelope.sessionId,
-        startedAt: envelope.timestamp,
-        status: 'active',
-        eventsProcessed: 0,
-      };
-    }
-    this.session.eventsProcessed += 1;
-  }
 }
