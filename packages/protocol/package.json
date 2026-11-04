@@ -4,6 +4,9 @@
   "type": "module",
   "description": "Universal Event Protocol schemas, types, and validators for AOE",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/aoe-dev/aoe.git",

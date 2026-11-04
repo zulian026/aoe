@@ -4,6 +4,9 @@
   "type": "module",
   "description": "Terminal rendering engine and screen orchestrator for AOE",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/aoe-dev/aoe.git",

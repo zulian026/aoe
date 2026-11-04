@@ -4,6 +4,9 @@
   "type": "module",
   "description": "Theme engine, tokens, and palettes for AOE terminal rendering",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/aoe-dev/aoe.git",

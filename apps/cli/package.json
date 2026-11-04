@@ -4,6 +4,9 @@
   "type": "module",
   "description": "Command-line interface for the AOE presentation engine",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/aoe-dev/aoe.git",

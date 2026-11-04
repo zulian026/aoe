@@ -4,6 +4,9 @@
   "type": "module",
   "description": "Terminal UI components for AOE presentation",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/aoe-dev/aoe.git",

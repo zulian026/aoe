@@ -4,6 +4,9 @@
   "type": "module",
   "description": "Agent ingestion adapters converting CLI/agent telemetry to AOE Universal Protocol",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/aoe-dev/aoe.git",

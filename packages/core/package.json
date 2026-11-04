@@ -4,6 +4,9 @@
   "type": "module",
   "description": "Core state management, event processing, and lifecycle engine for AOE",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/aoe-dev/aoe.git",
