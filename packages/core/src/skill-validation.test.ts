@@ -47,7 +47,7 @@ describe('AOE Skill Validation Suite', () => {
 
     it('contains valid YAML frontmatter with name and description', () => {
       const content = fs.readFileSync(skillPath, 'utf8');
-      expect(content).toMatch(/^---\n[\s\S]*?\n---/);
+      expect(content).toMatch(/^---\r?\n[\s\S]*?\r?\n---/);
       expect(content).toMatch(/name:\s*aoe/);
       expect(content).toMatch(/description:\s*.+/);
     });
@@ -61,6 +61,35 @@ describe('AOE Skill Validation Suite', () => {
       expect(content).toContain('Safe Engine Detection & Fallback');
       expect(content).toContain('Reference Documentation');
       expect(content).toContain('Reference Examples');
+    });
+
+    describe('frontmatter parser regression tests', () => {
+      const frontmatterPattern = /^---\r?\n[\s\S]*?\r?\n---/;
+
+      it('accepts standard LF newlines in frontmatter', () => {
+        const lfContent = '---\nname: aoe\ndescription: test\n---\n# Body\n';
+        expect(lfContent).toMatch(frontmatterPattern);
+      });
+
+      it('accepts Windows CRLF newlines in frontmatter', () => {
+        const crlfContent = '---\r\nname: aoe\r\ndescription: test\r\n---\r\n# Body\r\n';
+        expect(crlfContent).toMatch(frontmatterPattern);
+      });
+
+      it('rejects input missing the opening delimiter', () => {
+        const missingOpen = 'name: aoe\ndescription: test\n---\n# Body\n';
+        expect(missingOpen).not.toMatch(frontmatterPattern);
+      });
+
+      it('rejects input missing the closing delimiter', () => {
+        const missingClose = '---\nname: aoe\ndescription: test\n# Body without closing\n';
+        expect(missingClose).not.toMatch(frontmatterPattern);
+      });
+
+      it('rejects input without newline immediately following opening delimiter', () => {
+        const malformedOpen = '---name: aoe\n---\n# Body\n';
+        expect(malformedOpen).not.toMatch(frontmatterPattern);
+      });
     });
   });
 
