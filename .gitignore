@@ -7,6 +7,8 @@ dist/
 build/
 *.tsbuildinfo
 apps/cli/skills/
+release-artifacts/
+*.tgz
 
 # Test and coverage
 coverage/
