@@ -11,34 +11,76 @@ import { validateCanonicalEvent } from './protocol-validator.js';
 import { SidecarEventSequencer } from './event-sequencer.js';
 import { SidecarReadModel } from './read-model.js';
 import { SidecarIpcClient } from './ipc-client.js';
+import { SidecarIpcServer } from './ipc-server.js';
 
 export interface SidecarConsumerOptions extends Partial<IpcClientOptions> {
   socketPath: string;
   autoStart?: boolean;
+  mode?: 'client' | 'server';
 }
 
 /**
  * High-level AOE Sidecar Consumer.
- * Orchestrates Unix domain socket connection, incremental framing,
+ * Orchestrates Unix domain socket connection / server hosting, incremental framing,
  * protocol envelope validation, monotonic sequence checking, and read-model state reduction.
  */
 export class SidecarConsumer extends EventEmitter {
+  public readonly mode: 'client' | 'server';
   public readonly client: SidecarIpcClient;
+  public readonly server?: SidecarIpcServer;
   public readonly decoder: IncrementalFrameDecoder;
   public readonly sequencer: SidecarEventSequencer;
   public readonly readModel: SidecarReadModel;
 
   constructor(options: SidecarConsumerOptions) {
     super();
+    this.mode = options.mode ?? 'client';
     this.client = new SidecarIpcClient(options);
     this.decoder = new IncrementalFrameDecoder();
     this.sequencer = new SidecarEventSequencer();
     this.readModel = new SidecarReadModel();
 
-    this.wireEvents();
+    if (this.mode === 'server') {
+      this.server = new SidecarIpcServer({ socketPath: options.socketPath });
+      this.wireServerEvents();
+    } else {
+      this.wireClientEvents();
+    }
   }
 
-  private wireEvents(): void {
+  private wireServerEvents(): void {
+    if (!this.server) return;
+
+    this.server.on('listen', () => {
+      this.decoder.reset();
+      this.emit('connect');
+      this.emit('status', 'connected');
+    });
+
+    this.server.on('data', (chunk: Buffer) => {
+      this.ingest(chunk);
+    });
+
+    this.server.on('status', (status: SidecarConnectionStatus) => {
+      this.emit('status', status);
+    });
+
+    this.server.on('clientError', (err: Error) => {
+      this.readModel.addDiagnostic({
+        level: 'warning',
+        code: 'IPC_CLIENT_ERROR',
+        message: `Client error: ${err.message}`,
+        timestamp: new Date().toISOString(),
+      });
+    });
+
+    this.server.on('close', () => {
+      this.emit('disconnect', 'Server closed');
+      this.emit('status', 'closed');
+    });
+  }
+
+  private wireClientEvents(): void {
     this.client.on('connect', () => {
       this.decoder.reset();
       this.emit('connect');
@@ -152,28 +194,42 @@ export class SidecarConsumer extends EventEmitter {
   }
 
   /**
-   * Starts connection to the socket.
+   * Starts connection to the socket or begins listening on server socket.
    */
   public async start(): Promise<void> {
-    await this.client.connect();
+    if (this.mode === 'server') {
+      await this.server?.start();
+    } else {
+      await this.client.connect();
+    }
   }
 
   /**
-   * Stops the consumer, draining remaining buffer and closing socket.
+   * Stops the consumer, draining remaining buffer and closing socket or server.
    */
   public async stop(): Promise<void> {
     const drained = this.decoder.drain();
     for (const line of drained.lines) {
       this.processLine(line);
     }
-    await this.client.disconnect();
+    if (this.mode === 'server') {
+      await this.server?.stop();
+    } else {
+      await this.client.disconnect();
+    }
   }
 
   public getStatus(): SidecarConnectionStatus {
+    if (this.mode === 'server') {
+      return this.server?.getStatus() ?? 'idle';
+    }
     return this.client.getStatus();
   }
 
   public isConnected(): boolean {
+    if (this.mode === 'server') {
+      return this.server?.isListening() ?? false;
+    }
     return this.client.isConnected();
   }
 

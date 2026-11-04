@@ -107,7 +107,7 @@ export const SidecarApp: React.FC<SidecarAppProps> = ({
   // Determine terminal width
   const outCols = (stdout as unknown as { columns?: number })?.columns ?? process.stdout?.columns;
   const columns = explicitWidth ?? (outCols ? Math.max(40, outCols) : 80);
-  const isNarrow = columns < 100;
+  const isNarrow = columns < 110;
 
   const subtleColor = resolveThemeColor('foregroundSubtle', activeTheme, noColor);
 

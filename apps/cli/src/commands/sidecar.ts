@@ -20,6 +20,7 @@ export interface SidecarCommandOptions {
   once?: boolean;
   json?: boolean;
   static?: boolean;
+  listen?: boolean;
 }
 
 /**
@@ -80,6 +81,7 @@ export function registerSidecarCommand(program: Command): void {
     .option('--once', 'Connect, snapshot current state, and exit cleanly')
     .option('--json', 'Format output snapshot as JSON')
     .option('--static', 'Render static non-interactive view without TTY loop')
+    .option('-l, --listen', 'Listen as IPC server on socket path instead of connecting')
     .action(async (options: SidecarCommandOptions) => {
       await executeSidecar(options);
     });
@@ -99,11 +101,13 @@ export async function executeSidecar(
     socketPath = path.resolve(options.socket);
   } else if (options.session) {
     socketPath = resolveSocketPath(options.session);
+  } else if (options.listen) {
+    socketPath = resolveSocketPath('default');
   } else {
     socketPath = discoverActiveSocket(options.dir);
   }
 
-  if (!socketPath || (!fs.existsSync(socketPath) && !options.socket)) {
+  if (!socketPath || (!fs.existsSync(socketPath) && !options.socket && !options.listen)) {
     if (options.json) {
       customStdout.write(
         JSON.stringify({ status: 'no_session', message: 'No active session found' }) + '\n',
@@ -111,7 +115,7 @@ export async function executeSidecar(
     } else {
       customStdout.write('[AOE Sidecar] No active agent session found.\n');
       customStdout.write(
-        'No active socket detected. Start an AI agent session with AOE enabled, or specify --socket <path>.\n',
+        'No active socket detected. Start an AI agent session with AOE enabled, or specify --socket <path> / --listen.\n',
       );
     }
     return ExitCode.SUCCESS;
@@ -123,9 +127,11 @@ export async function executeSidecar(
     !options.static &&
     isInteractiveSuitable(customStdout);
 
+  const mode = options.listen ? 'server' : 'client';
   const consumer = new SidecarConsumer({
     socketPath,
-    autoReconnect: !options.once && isInteractive,
+    mode,
+    autoReconnect: !options.once && isInteractive && mode === 'client',
     connectTimeoutMs: 2500,
   });
 

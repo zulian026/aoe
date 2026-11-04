@@ -199,4 +199,55 @@ describe('aoe sidecar CLI command', () => {
 
     expect(captured).toContain('Connecting to socket:');
   });
+
+  it('runs sidecar in listen mode, accepts producer connection with --once, and prints output', async () => {
+    const sockPath = path.join(tmpDir, 'aoe-test-listen-mode.sock');
+
+    let captured = '';
+    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation((chunk) => {
+      captured += chunk.toString();
+      return true;
+    });
+
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+
+    // Launch sidecar in listen mode with --once
+    const cliPromise = runCli([
+      'node',
+      'aoe',
+      'sidecar',
+      '--socket',
+      sockPath,
+      '--listen',
+      '--once',
+      '--json',
+    ]);
+
+    // Give server 50ms to bind
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(fs.existsSync(sockPath)).toBe(true);
+
+    // Producer connects and sends session.started
+    const client = net.createConnection(sockPath);
+    await new Promise<void>((resolve) => client.once('connect', () => resolve()));
+
+    const e0 = createEvent('session.started', {
+      sessionId: 'sess_cli_listen',
+      sequence: 0,
+      payload: {
+        agent: { name: 'antigravity', version: '1.5.0' },
+        workingDirectory: '/home/user/app',
+      },
+    });
+
+    client.write(JSON.stringify(e0) + '\n');
+    await cliPromise;
+
+    stdoutSpy.mockRestore();
+    exitSpy.mockRestore();
+
+    expect(captured).toContain('sess_cli_listen');
+    const parsed = JSON.parse(captured.trim());
+    expect(parsed.sessionId).toBe('sess_cli_listen');
+  });
 });

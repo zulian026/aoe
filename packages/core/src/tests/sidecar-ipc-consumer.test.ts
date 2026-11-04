@@ -353,4 +353,46 @@ describe('Sidecar IPC Consumer Integration', () => {
 
     await consumer.stop();
   });
+
+  it('operates in server mode, listening on socket, receiving client connections, and reducing events', async () => {
+    const serverConsumer = new SidecarConsumer({
+      socketPath,
+      mode: 'server',
+    });
+
+    await serverConsumer.start();
+    expect(serverConsumer.isConnected()).toBe(true);
+    expect(fs.existsSync(socketPath)).toBe(true);
+
+    // Verify socket permissions (0600)
+    if (process.platform !== 'win32') {
+      const stat = fs.statSync(socketPath);
+      // Mask mode with 0777 to check file permissions
+      const mode = stat.mode & 0o777;
+      expect(mode).toBe(0o600);
+    }
+
+    // Connect a mock producer client
+    const client = net.createConnection(socketPath);
+    await new Promise<void>((resolve) => client.once('connect', () => resolve()));
+
+    const e0 = createEvent('session.started', {
+      sessionId: 'sess_server_mode',
+      sequence: 0,
+      payload: {
+        agent: { name: 'antigravity', version: '1.5.0' },
+        workingDirectory: '/home/user/app',
+      },
+    });
+
+    client.write(JSON.stringify(e0) + '\n');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(serverConsumer.getSnapshot().sessionId).toBe('sess_server_mode');
+    expect(serverConsumer.getSnapshot().status).toBe('active');
+
+    client.destroy();
+    await serverConsumer.stop();
+    expect(fs.existsSync(socketPath)).toBe(false);
+  });
 });
