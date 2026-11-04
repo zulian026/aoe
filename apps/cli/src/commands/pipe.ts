@@ -35,7 +35,7 @@ export function registerPipeCommand(program: Command): void {
     .description('Ingest external AI coding agent output and normalize into AOE presentation')
     .option(
       '-a, --agent <name>',
-      'Agent adapter to use ("auto", "claude-code", "gemini-cli", "generic-jsonl")',
+      'Agent adapter to use ("auto", "antigravity", "claude-code", "gemini-cli", "generic-jsonl")',
       'auto',
     )
     .option('-t, --theme <name>', 'Theme identifier to use for rendering')

@@ -177,4 +177,33 @@ describe('E2E CLI Subprocess Execution', () => {
     expect(res.code).toBe(0);
     expect(res.stdout).toContain('agent: custom-tool');
   });
+
+  it('pipes Antigravity hook to aoe pipe --agent antigravity with exit code 0', async () => {
+    const antigravityPayload =
+      JSON.stringify({
+        conversationId: 'ag_e2e_sub',
+        hookEventName: 'SessionStart',
+        workspacePaths: ['/workspace/antigravity'],
+      }) + '\n';
+
+    const res = await runBinary(
+      ['pipe', '--agent', 'antigravity', '--format', 'static'],
+      antigravityPayload,
+    );
+    expect(res.code).toBe(0);
+    expect(res.stdout).toContain('agent: antigravity');
+  });
+
+  it('executes aoe bridge --event PreToolUse with exit code 0 and returns valid response', async () => {
+    const bridgePayload = JSON.stringify({
+      conversationId: 'ag_e2e_bridge',
+      toolCall: { name: 'run_command', args: { CommandLine: 'echo 1' } },
+      stepIdx: 1,
+    });
+
+    const res = await runBinary(['bridge', '--event', 'PreToolUse'], bridgePayload);
+    expect(res.code).toBe(0);
+    const parsed = JSON.parse(res.stdout.trim());
+    expect(parsed).toEqual({ decision: 'allow' });
+  });
 });

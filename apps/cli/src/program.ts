@@ -5,6 +5,7 @@ import { registerPipeCommand } from './commands/pipe.js';
 import { registerThemeCommand } from './commands/theme.js';
 import { registerDoctorCommand } from './commands/doctor.js';
 import { registerSkillCommand } from './commands/skill.js';
+import { registerBridgeCommand } from './commands/bridge.js';
 import { formatErrorOutput } from './utils/errors.js';
 import { ExitCode } from './runtime/exit-codes.js';
 
@@ -30,6 +31,7 @@ export function createProgram(): Command {
   registerThemeCommand(program);
   registerDoctorCommand(program);
   registerSkillCommand(program);
+  registerBridgeCommand(program);
 
   // Informative version command
   program

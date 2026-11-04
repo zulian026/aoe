@@ -19,6 +19,7 @@ import {
 import { JsonlAdapter } from '../generic/jsonl-adapter.js';
 import { ClaudeCodeAdapter } from '../agents/claude-code/adapter.js';
 import { GeminiCliAdapter } from '../agents/gemini-cli/adapter.js';
+import { AntigravityAdapter } from '../agents/antigravity/adapter.js';
 
 export interface RegisterAdapterOptions {
   replace?: boolean;
@@ -269,6 +270,7 @@ export function createDefaultAdapterManager(): AdapterManager {
   manager.register(new JsonlAdapter({ id: 'generic-jsonl' }));
   manager.register(new ClaudeCodeAdapter());
   manager.register(new GeminiCliAdapter());
+  manager.register(new AntigravityAdapter());
   return manager;
 }
 

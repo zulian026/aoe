@@ -144,7 +144,7 @@ export async function executeDoctor(optionsOrSkillPath?: string | DoctorOptions)
   const adapters = manager.list();
   const adapterIds = new Set(adapters.map((a) => a.id));
 
-  for (const reqAdapter of ['claude-code', 'gemini-cli', 'generic-jsonl']) {
+  for (const reqAdapter of ['antigravity', 'claude-code', 'gemini-cli', 'generic-jsonl']) {
     if (adapterIds.has(reqAdapter)) {
       adapterChecks.push({
         name: `Adapter: ${reqAdapter}`,

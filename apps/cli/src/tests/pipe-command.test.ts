@@ -70,6 +70,44 @@ describe('aoe pipe command', () => {
     ).resolves.toBeUndefined();
   });
 
+  it('processes Antigravity hook payloads with explicit --agent antigravity', async () => {
+    const antigravityPayloads =
+      [
+        JSON.stringify({
+          conversationId: 'ag_sess_1',
+          hookEventName: 'SessionStart',
+          workspacePaths: ['/project/antigravity'],
+        }),
+        JSON.stringify({
+          conversationId: 'ag_sess_1',
+          hookEventName: 'PreInvocation',
+          invocationNum: 1,
+          lastUserInput: 'Build features',
+        }),
+        JSON.stringify({
+          conversationId: 'ag_sess_1',
+          hookEventName: 'PreToolUse',
+          toolCall: { name: 'write_file', args: { Path: 'src/main.ts' } },
+        }),
+        JSON.stringify({
+          conversationId: 'ag_sess_1',
+          hookEventName: 'PostToolUse',
+          toolCall: { name: 'write_file', args: { Path: 'src/main.ts' } },
+        }),
+        JSON.stringify({
+          conversationId: 'ag_sess_1',
+          hookEventName: 'Stop',
+          terminationReason: 'NO_TOOL_CALL',
+        }),
+      ].join('\n') + '\n';
+
+    const stream = createMockStream([antigravityPayloads]);
+
+    await expect(
+      executePipe({ agent: 'antigravity', format: 'static' }, stream),
+    ).resolves.toBeUndefined();
+  });
+
   it('processes Generic JSONL stream with explicit --agent generic-jsonl', async () => {
     const genericEvents =
       [
@@ -141,8 +179,12 @@ describe('aoe pipe command', () => {
     // Ensure ambient environment variables are not set
     const origClaude = process.env.CLAUDE_PROJECT_ROOT;
     const origGemini = process.env.GEMINI_CLI_HOME;
+    const origAgAppData = process.env.ANTIGRAVITY_APP_DATA_DIR;
+    const origAgLog = process.env.ANTIGRAVITY_CLI_LOG_FILE;
     delete process.env.CLAUDE_PROJECT_ROOT;
     delete process.env.GEMINI_CLI_HOME;
+    delete process.env.ANTIGRAVITY_APP_DATA_DIR;
+    delete process.env.ANTIGRAVITY_CLI_LOG_FILE;
 
     try {
       const stream = createMockStream(['{"ambiguous": true}\n']);
@@ -153,6 +195,8 @@ describe('aoe pipe command', () => {
     } finally {
       if (origClaude) process.env.CLAUDE_PROJECT_ROOT = origClaude;
       if (origGemini) process.env.GEMINI_CLI_HOME = origGemini;
+      if (origAgAppData) process.env.ANTIGRAVITY_APP_DATA_DIR = origAgAppData;
+      if (origAgLog) process.env.ANTIGRAVITY_CLI_LOG_FILE = origAgLog;
     }
   });
 });
