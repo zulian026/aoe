@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-Design tokens are the foundational visual values of the AOE presentation system. All visual decisions in `@aoe/components` and `@aoe/renderer` are driven by these semantic tokens, eliminating hardcoded hex codes, colors, and styling across the codebase.
+Design tokens are the foundational visual values of the AOE presentation system. All visual decisions in `@zyanx04/components` and `@zyanx04/renderer` are driven by these semantic tokens, eliminating hardcoded hex codes, colors, and styling across the codebase.
 
 ---
 

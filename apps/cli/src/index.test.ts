@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createProgram, CLI_VERSION } from './index.js';
 
-describe('@aoe/cli', () => {
+describe('@zyanx04/cli', () => {
   it('creates commander program with proper configuration', () => {
     const program = createProgram();
     expect(program.name()).toBe('aoe');

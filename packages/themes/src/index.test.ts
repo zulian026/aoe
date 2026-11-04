@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { OBSIDIAN_THEME, ThemeDefinitionSchema } from './index.js';
 
-describe('@aoe/themes', () => {
+describe('@zyanx04/themes', () => {
   it('validates default obsidian theme schema', () => {
     const parsed = ThemeDefinitionSchema.safeParse(OBSIDIAN_THEME);
     expect(parsed.success).toBe(true);

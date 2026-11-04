@@ -1,21 +1,21 @@
-# @aoe/cli
+# @zyanx04/cli
 
 The official command-line interface executable for AOE (Agent Output Enhancement).
 
 ## Overview
 
-`@aoe/cli` is the entrypoint binary (`aoe`) that connects stdin streaming, adapter normalization, core engine state tracking, and terminal rendering into a fast, reliable CLI workflow.
+`@zyanx04/cli` is the entrypoint binary (`aoe`) that connects stdin streaming, adapter normalization, core engine state tracking, and terminal rendering into a fast, reliable CLI workflow.
 
 ## Installation
 
 ```bash
 # Global installation
-npm install -g @aoe/cli
+npm install -g @zyanx04/cli
 
 # Local project installation
-npm install -D @aoe/cli
+npm install -D @zyanx04/cli
 # or
-pnpm add -D @aoe/cli
+pnpm add -D @zyanx04/cli
 ```
 
 ## Commands

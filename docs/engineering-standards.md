@@ -6,7 +6,7 @@
 2. **Package Isolation**: Every package in `packages/*` and `apps/*` must be independently buildable, testable, and lintable.
 3. **Strict Type Safety**: All TypeScript code must compile under `strict: true`, `noImplicitAny: true`, and `exactOptionalPropertyTypes: true`.
 4. **Hermetic Testing**: Tests must run deterministically with zero dependence on external network services.
-5. **Backwards Compatibility**: The Universal Protocol (`@aoe/protocol`) must maintain semantic versioning and compatibility across patch and minor releases.
+5. **Backwards Compatibility**: The Universal Protocol (`@zyanx04/protocol`) must maintain semantic versioning and compatibility across patch and minor releases.
 6. **No Phantom Progress**: Output streams and UI components must accurately reflect true execution states. Never synthesize simulated delays or mock progress.
 
 ## 2. Monorepo Conventions

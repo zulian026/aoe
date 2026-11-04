@@ -3,7 +3,7 @@ import type {
   TaskUpdatedPayload,
   TaskCompletedPayload,
   TaskFailedPayload,
-} from '@aoe/protocol';
+} from '@zyanx04/protocol';
 import type { TaskSnapshot, CoreTaskStatus, TaskProgress } from './types.js';
 import {
   CircularTaskHierarchyError,

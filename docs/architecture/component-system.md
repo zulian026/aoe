@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-The `@aoe/components` package provides typed, modular, and terminal-first presentation components. Each component is decoupled from state-management logic and consumes plain props to format and render information with Ink and terminal text streams.
+The `@zyanx04/components` package provides typed, modular, and terminal-first presentation components. Each component is decoupled from state-management logic and consumes plain props to format and render information with Ink and terminal text streams.
 
 ## 2. Component Catalog
 

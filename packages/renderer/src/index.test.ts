@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createRendererStub } from './index.js';
 
-describe('@aoe/renderer', () => {
+describe('@zyanx04/renderer', () => {
   it('creates renderer instance and exposes lifecycle methods', async () => {
     const renderer = createRendererStub();
     expect(renderer).toHaveProperty('initialize');

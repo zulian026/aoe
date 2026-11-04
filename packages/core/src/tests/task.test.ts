@@ -5,7 +5,7 @@ import {
   DuplicateTaskError,
   InvalidLifecycleTransitionError,
 } from '../index.js';
-import { createEvent } from '@aoe/protocol';
+import { createEvent } from '@zyanx04/protocol';
 
 describe('Task Hierarchy & State Transitions', () => {
   it('correctly builds nested task hierarchies and calculates depths', () => {

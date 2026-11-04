@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box } from 'ink';
-import type { SessionSnapshot } from '@aoe/core';
-import { OBSIDIAN_THEME, type AoeTheme, type ThemeDefinition } from '@aoe/themes';
+import type { SessionSnapshot } from '@zyanx04/core';
+import { OBSIDIAN_THEME, type AoeTheme, type ThemeDefinition } from '@zyanx04/themes';
 import {
   ThemeProvider,
   Panel,
@@ -17,7 +17,7 @@ import {
   type LogItem,
   type ResultItem,
   formatDuration,
-} from '@aoe/components';
+} from '@zyanx04/components';
 
 export interface InteractiveAppProps {
   snapshot: SessionSnapshot;

@@ -3,7 +3,7 @@ import {
   PROTOCOL_VERSION,
   type AoeEvent,
   type ProtocolEnvelope,
-} from '@aoe/protocol';
+} from '@zyanx04/protocol';
 import type {
   AgentAdapter,
   AgentKind,

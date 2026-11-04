@@ -1,12 +1,12 @@
 import { Command } from 'commander';
-import { parseEventStream, ProtocolError } from '@aoe/protocol';
+import { parseEventStream, ProtocolError } from '@zyanx04/protocol';
 import { loadConfig } from '../config/index.js';
 import { ExecutionPipeline } from '../runtime/execution-pipeline.js';
 import { isPipedStream, readStreamChunks } from '../runtime/stdin-reader.js';
 import { ExitCode } from '../runtime/exit-codes.js';
 import { CliError } from '../utils/errors.js';
 import { defaultLogger } from '../utils/logger.js';
-import type { RendererMode } from '@aoe/renderer';
+import type { RendererMode } from '@zyanx04/renderer';
 
 export interface RenderCommandOptions {
   theme?: string;

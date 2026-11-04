@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { COMPONENT_REGISTRY } from './index.js';
 
-describe('@aoe/components', () => {
+describe('@zyanx04/components', () => {
   it('registers all required core terminal components', () => {
     expect(COMPONENT_REGISTRY).toContain('StatusIndicator');
     expect(COMPONENT_REGISTRY).toContain('ProgressBar');

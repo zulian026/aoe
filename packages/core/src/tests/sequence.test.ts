@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Engine, BufferOverflowError } from '../index.js';
-import { createEvent } from '@aoe/protocol';
+import { createEvent } from '@zyanx04/protocol';
 
 describe('Sequence Integrity & Out-of-Order Recovery', () => {
   it('accepts contiguous sequential events', () => {

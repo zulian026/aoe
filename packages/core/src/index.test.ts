@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { Engine } from './index.js';
-import { type ProtocolEnvelope } from '@aoe/protocol';
+import { type ProtocolEnvelope } from '@zyanx04/protocol';
 
-describe('@aoe/core Engine', () => {
+describe('@zyanx04/core Engine', () => {
   it('starts without an active session', () => {
     const engine = new Engine();
     expect(engine.getSession()).toBeNull();

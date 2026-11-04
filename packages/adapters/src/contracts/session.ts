@@ -1,4 +1,4 @@
-import { createSessionId } from '@aoe/protocol';
+import { createSessionId } from '@zyanx04/protocol';
 
 export type AdapterSessionStatus = 'active' | 'completed' | 'failed' | 'disposed';
 

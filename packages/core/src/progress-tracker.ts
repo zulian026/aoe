@@ -1,4 +1,4 @@
-import { calculateProgressPercentage, type ProgressUpdatedPayload } from '@aoe/protocol';
+import { calculateProgressPercentage, type ProgressUpdatedPayload } from '@zyanx04/protocol';
 import type { TaskProgress } from './types.js';
 import { InvalidStateMutationError } from './errors.js';
 

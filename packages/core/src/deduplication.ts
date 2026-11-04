@@ -1,4 +1,4 @@
-import type { AoeEvent } from '@aoe/protocol';
+import type { AoeEvent } from '@zyanx04/protocol';
 import { ConflictingEventIdError } from './errors.js';
 
 interface SeenEventRecord {

@@ -1,6 +1,6 @@
 # Creating a New Agent Adapter
 
-This guide details how to implement, test, and register a new agent integration adapter in AOE using the `@aoe/adapters` framework.
+This guide details how to implement, test, and register a new agent integration adapter in AOE using the `@zyanx04/adapters` framework.
 
 ---
 
@@ -33,8 +33,8 @@ import {
   AdapterLifecycleState,
   AdapterSession,
   sanitizeAgentText,
-} from '@aoe/adapters';
-import { AoeEvent, PROTOCOL_VERSION } from '@aoe/protocol';
+} from '@zyanx04/adapters';
+import { AoeEvent, PROTOCOL_VERSION } from '@zyanx04/protocol';
 
 export class CustomAgentAdapter implements AgentAdapter {
   public readonly id = 'custom-agent';
@@ -109,7 +109,7 @@ Throw domain-specific typed errors:
 Sanitize all agent strings before constructing payload fields:
 
 ```typescript
-import { sanitizeAgentText, maskSecrets, stripPrivateReasoning } from '@aoe/adapters';
+import { sanitizeAgentText, maskSecrets, stripPrivateReasoning } from '@zyanx04/adapters';
 
 const safeMessage = sanitizeAgentText(rawEvent.message);
 ```
@@ -122,7 +122,7 @@ Write unit and integration tests using `vitest`:
 
 ```typescript
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createAdapterSession } from '@aoe/adapters';
+import { createAdapterSession } from '@zyanx04/adapters';
 import { CustomAgentAdapter } from './custom-agent-adapter.js';
 
 describe('CustomAgentAdapter', () => {
@@ -161,7 +161,7 @@ describe('CustomAgentAdapter', () => {
 Register your adapter instance with `AdapterManager`:
 
 ```typescript
-import { AdapterManager } from '@aoe/adapters';
+import { AdapterManager } from '@zyanx04/adapters';
 import { CustomAgentAdapter } from './custom-agent-adapter.js';
 
 const manager = new AdapterManager();

@@ -1,10 +1,10 @@
-# @aoe/core
+# @zyanx04/core
 
 Core state management, event ingestion, and session lifecycle engine for AOE (Agent Output Enhancement).
 
 ## Overview
 
-`@aoe/core` transforms validated canonical protocol events (`@aoe/protocol`) into structured, stateful session data. It maintains task hierarchies, aggregates progress metrics, verifies file changes, enforces lifecycle state transitions, and emits immutable session snapshots.
+`@zyanx04/core` transforms validated canonical protocol events (`@zyanx04/protocol`) into structured, stateful session data. It maintains task hierarchies, aggregates progress metrics, verifies file changes, enforces lifecycle state transitions, and emits immutable session snapshots.
 
 ## Features
 
@@ -18,16 +18,16 @@ Core state management, event ingestion, and session lifecycle engine for AOE (Ag
 ## Installation
 
 ```bash
-npm install @aoe/core @aoe/protocol
+npm install @zyanx04/core @zyanx04/protocol
 # or
-pnpm add @aoe/core @aoe/protocol
+pnpm add @zyanx04/core @zyanx04/protocol
 ```
 
 ## Quick Start
 
 ```typescript
-import { Engine, type SessionSnapshot } from '@aoe/core';
-import type { AoeEvent } from '@aoe/protocol';
+import { Engine, type SessionSnapshot } from '@zyanx04/core';
+import type { AoeEvent } from '@zyanx04/protocol';
 
 const engine = new Engine();
 

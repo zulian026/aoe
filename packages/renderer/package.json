@@ -1,6 +1,6 @@
 {
-  "name": "@aoe/renderer",
-  "version": "0.1.0",
+  "name": "@zyanx04/renderer",
+  "version": "0.1.1",
   "type": "module",
   "description": "Terminal rendering engine and screen orchestrator for AOE",
   "license": "MIT",
@@ -44,10 +44,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@aoe/components": "workspace:*",
-    "@aoe/core": "workspace:*",
-    "@aoe/protocol": "workspace:*",
-    "@aoe/themes": "workspace:*",
+    "@zyanx04/components": "workspace:*",
+    "@zyanx04/core": "workspace:*",
+    "@zyanx04/protocol": "workspace:*",
+    "@zyanx04/themes": "workspace:*",
     "ink": "^8.0.0",
     "react": "^19.3.1"
   },

@@ -1,4 +1,4 @@
-import { type AoeTheme, type ThemeDefinition } from '@aoe/themes';
+import { type AoeTheme, type ThemeDefinition } from '@zyanx04/themes';
 
 export type ComponentStatus =
   | 'idle'

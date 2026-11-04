@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import { OBSIDIAN_THEME, type AoeTheme } from '@aoe/themes';
+import { OBSIDIAN_THEME, type AoeTheme } from '@zyanx04/themes';
 
 const ThemeContext = createContext<AoeTheme>(OBSIDIAN_THEME);
 

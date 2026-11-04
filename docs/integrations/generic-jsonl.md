@@ -1,6 +1,6 @@
 # Generic JSONL Integration
 
-The `generic-jsonl` adapter in `@aoe/adapters` provides a robust, streamable ingestion mechanism for any AI coding agent, script, or CI pipeline that emits line-delimited JSON (JSONL).
+The `generic-jsonl` adapter in `@zyanx04/adapters` provides a robust, streamable ingestion mechanism for any AI coding agent, script, or CI pipeline that emits line-delimited JSON (JSONL).
 
 ---
 
@@ -9,7 +9,7 @@ The `generic-jsonl` adapter in `@aoe/adapters` provides a robust, streamable ing
 The JSONL integration is split into two core layers:
 
 1. **`JsonlParser`**: A streaming chunk-based line parser that handles line splitting, CRLF/LF normalization, buffer size bounds, and malformed JSON recovery.
-2. **`JsonlAdapter`**: An `AgentAdapter` implementation that normalizes parsed objects into canonical `@aoe/protocol` envelopes.
+2. **`JsonlAdapter`**: An `AgentAdapter` implementation that normalizes parsed objects into canonical `@zyanx04/protocol` envelopes.
 
 ```text
 Stream Input (Chunks) -> [JsonlParser] -> Valid JSON Lines -> [JsonlAdapter] -> Canonical AoeEvents
@@ -46,7 +46,7 @@ The `generic-jsonl` adapter supports two input formats:
 
 ### 3.1 Canonical AOE Protocol Envelopes (Direct Ingestion)
 
-If the JSON object already matches the `@aoe/protocol` specification, the adapter validates the envelope and ingests it directly:
+If the JSON object already matches the `@zyanx04/protocol` specification, the adapter validates the envelope and ingests it directly:
 
 ```json
 {"protocolVersion":"1.0.0","eventId":"evt_01","sessionId":"sess_1","sequence":1,"timestamp":"2026-11-03T12:00:00.000Z","eventType":"session.started","payload":{"agentName":"custom-agent","agentVersion":"1.0.0"}}
@@ -67,7 +67,7 @@ For third-party agents emitting simplified JSON events with `event` (or `type`) 
 {"event":"end"}
 ```
 
-The adapter maps these simplified forms to canonical `@aoe/protocol` events:
+The adapter maps these simplified forms to canonical `@zyanx04/protocol` events:
 
 - `start` / `session_start` -> `session.started`
 - `task_start` -> `task.started`
@@ -84,7 +84,7 @@ The adapter maps these simplified forms to canonical `@aoe/protocol` events:
 ## 4. Usage Example
 
 ```typescript
-import { JsonlAdapter, createAdapterSession } from '@aoe/adapters';
+import { JsonlAdapter, createAdapterSession } from '@zyanx04/adapters';
 
 const adapter = new JsonlAdapter();
 const session = createAdapterSession({

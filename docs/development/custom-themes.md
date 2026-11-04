@@ -13,7 +13,7 @@ All custom themes are strictly validated against `AoeThemeSchema` and deep-froze
 A custom theme is a pure JavaScript object adhering to the `AoeTheme` contract:
 
 ```typescript
-import { type AoeTheme, OBSIDIAN_THEME } from '@aoe/themes';
+import { type AoeTheme, OBSIDIAN_THEME } from '@zyanx04/themes';
 
 export const SOLARIZED_DARK_THEME: AoeTheme = {
   id: 'solarized-dark',
@@ -78,7 +78,7 @@ export const SOLARIZED_DARK_THEME: AoeTheme = {
 ### Using `ThemeRegistry`
 
 ```typescript
-import { defaultRegistry, validateTheme, ThemeRegistry } from '@aoe/themes';
+import { defaultRegistry, validateTheme, ThemeRegistry } from '@zyanx04/themes';
 import { SOLARIZED_DARK_THEME } from './solarized-dark.js';
 
 // 1. Validate independently if needed
@@ -108,7 +108,7 @@ customRegistry.register(SOLARIZED_DARK_THEME);
 ### In `TerminalRenderer`
 
 ```typescript
-import { TerminalRenderer } from '@aoe/renderer';
+import { TerminalRenderer } from '@zyanx04/renderer';
 
 // Option A: Specify registered theme ID
 const renderer = new TerminalRenderer({
@@ -128,7 +128,7 @@ renderer.setTheme('solarized-dark');
 
 ```tsx
 import React from 'react';
-import { ThemeProvider, Panel, StatusIndicator } from '@aoe/components';
+import { ThemeProvider, Panel, StatusIndicator } from '@zyanx04/components';
 import { SOLARIZED_DARK_THEME } from './solarized-dark.js';
 
 export const MyTerminalApp = () => {

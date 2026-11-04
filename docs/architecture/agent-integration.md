@@ -1,15 +1,15 @@
 # Agent Integration Architecture
 
-This document describes the universal adapter architecture implemented in `@aoe/adapters` (Milestone 06) for the AOE (Agent Output Enhancement) system.
+This document describes the universal adapter architecture implemented in `@zyanx04/adapters` (Milestone 06) for the AOE (Agent Output Enhancement) system.
 
 ## 1. Architectural Role and Boundaries
 
 AOE separates execution intelligence from presentation. External AI coding agents (such as Claude Code, Gemini CLI, Cursor, or custom pipelines) emit proprietary event formats, JSON streams, or CLI hook payloads.
 
-The `@aoe/adapters` package serves as the bridge:
+The `@zyanx04/adapters` package serves as the bridge:
 
-- It normalizes heterogenous, proprietary inputs into canonical, validated AOE protocol envelopes (`@aoe/protocol`).
-- It manages session correlation, monotonic sequence numbers, and task lifecycles without leaking vendor-specific abstractions into `@aoe/core`.
+- It normalizes heterogenous, proprietary inputs into canonical, validated AOE protocol envelopes (`@zyanx04/protocol`).
+- It manages session correlation, monotonic sequence numbers, and task lifecycles without leaking vendor-specific abstractions into `@zyanx04/core`.
 - It enforces strict privacy and security policies (scrubbing secrets, eliminating chain-of-thought scratchpads, and forbidding command execution).
 
 ```text
@@ -17,29 +17,29 @@ The `@aoe/adapters` package serves as the bridge:
                                     |
                                     v (Proprietary Hooks / Stream JSON)
                           +-------------------+
-                          |  @aoe/adapters    |
+                          |  @zyanx04/adapters    |
                           |  (AdapterManager) |
                           +---------+---------+
                                     |
                                     v (Canonical Protocol Envelopes)
                           +-------------------+
-                          |  @aoe/protocol    |
+                          |  @zyanx04/protocol    |
                           +---------+---------+
                                     |
                                     v (Validated AoeEvent Stream)
                           +-------------------+
-                          |    @aoe/core      |
+                          |    @zyanx04/core      |
                           | (Session/Task/UI) |
                           +---------+---------+
                                     |
                                     v (Immutable SessionSnapshot)
                           +-------------------+
-                          |  @aoe/renderer    |
+                          |  @zyanx04/renderer    |
                           +---------+---------+
                                     |
                                     v (Design Tokens / Themes)
                           +-------------------+
-                          |  @aoe/components  |
+                          |  @zyanx04/components  |
                           +---------+---------+
                                     |
                                     v

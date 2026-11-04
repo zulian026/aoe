@@ -1,6 +1,6 @@
 {
-  "name": "@aoe/themes",
-  "version": "0.1.0",
+  "name": "@zyanx04/themes",
+  "version": "0.1.1",
   "type": "module",
   "description": "Theme engine, tokens, and palettes for AOE terminal rendering",
   "license": "MIT",

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Engine } from '../index.js';
-import { createEvent } from '@aoe/protocol';
+import { createEvent } from '@zyanx04/protocol';
 
 describe('Event Processing Atomicity', () => {
   it('guarantees that rejected events leave zero partial mutations', () => {

@@ -12,7 +12,7 @@ import {
   supportsColor,
   getColorDepth,
   getTerminalDimensions,
-} from '@aoe/renderer';
+} from '@zyanx04/renderer';
 
 const caps = detectEnvironmentCapabilities(process.stdout);
 console.log(caps);

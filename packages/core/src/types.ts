@@ -5,7 +5,7 @@ import type {
   FileEvidence,
   DiagnosticSeverity,
   DiagnosticLocation,
-} from '@aoe/protocol';
+} from '@zyanx04/protocol';
 import type { EngineError } from './errors.js';
 
 export type CoreSessionStatus = 'active' | 'completed' | 'failed' | 'cancelled';

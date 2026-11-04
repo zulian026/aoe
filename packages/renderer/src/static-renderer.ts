@@ -1,6 +1,6 @@
-import type { SessionSnapshot, TaskSnapshot } from '@aoe/core';
-import { OBSIDIAN_THEME, type AoeTheme, type ThemeDefinition } from '@aoe/themes';
-import { formatDuration, maskSecrets, stripAnsi, sanitizeTerminalText } from '@aoe/components';
+import type { SessionSnapshot, TaskSnapshot } from '@zyanx04/core';
+import { OBSIDIAN_THEME, type AoeTheme, type ThemeDefinition } from '@zyanx04/themes';
+import { formatDuration, maskSecrets, stripAnsi, sanitizeTerminalText } from '@zyanx04/components';
 import { supportsColor, isNoColor } from './environment.js';
 
 export interface StaticRendererOptions {

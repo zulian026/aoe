@@ -93,7 +93,7 @@ All integrations are verified against official vendor documentation as of Novemb
 
 - **Role**: Universal fallback and ingestion pipeline for any agent or tool generating structured JSON lines.
 - **Ingestion**: Standard input stream (`stdin`) or JSON line chunks via `JsonlAdapter`.
-- **Contract**: Accepts either pre-formatted canonical AOE protocol envelopes (`@aoe/protocol`) or generic event objects with `event` and `data` properties.
+- **Contract**: Accepts either pre-formatted canonical AOE protocol envelopes (`@zyanx04/protocol`) or generic event objects with `event` and `data` properties.
 
 ---
 

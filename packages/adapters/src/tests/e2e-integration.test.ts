@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Engine } from '@aoe/core';
-import { StaticRenderer } from '@aoe/renderer';
+import { Engine } from '@zyanx04/core';
+import { StaticRenderer } from '@zyanx04/renderer';
 import { createDefaultAdapterManager } from '../index.js';
 
 class MockStream {

@@ -1,14 +1,14 @@
 import React from 'react';
 import { render as inkRender, type Instance as InkInstance } from 'ink';
-import type { SessionSnapshot } from '@aoe/core';
+import type { SessionSnapshot } from '@zyanx04/core';
 import {
   OBSIDIAN_THEME,
   defaultRegistry,
   validateTheme,
   type AoeTheme,
   type ThemeDefinition,
-} from '@aoe/themes';
-import type { LogItem, ResultItem } from '@aoe/components';
+} from '@zyanx04/themes';
+import type { LogItem, ResultItem } from '@zyanx04/components';
 import {
   isInteractiveSuitable,
   isNoColor,

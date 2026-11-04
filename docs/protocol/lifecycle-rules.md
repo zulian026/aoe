@@ -7,7 +7,7 @@ The AOE protocol maintains a strict separation between **Schema Validation** and
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                      Stateless Protocol Layer                   │
-│              (@aoe/protocol — Implemented in M02)               │
+│              (@zyanx04/protocol — Implemented in M02)               │
 │                                                                 │
 │  - Validates individual event envelope syntax and data types.   │
 │  - Validates field constraints (e.g. sequence ≥ 0, lineDelta).  │
@@ -17,7 +17,7 @@ The AOE protocol maintains a strict separation between **Schema Validation** and
                                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Stateful Core Engine Layer                   │
-│                (@aoe/core — Implemented in M03)                 │
+│                (@zyanx04/core — Implemented in M03)                 │
 │                                                                 │
 │  - Tracks active sessions and task tree hierarchies.            │
 │  - Enforces sequence continuity (no sequence gaps or drops).    │

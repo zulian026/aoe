@@ -1,10 +1,10 @@
-# @aoe/themes
+# @zyanx04/themes
 
 Theme engine, semantic design tokens, and color resolution for AOE (Agent Output Enhancement).
 
 ## Overview
 
-`@aoe/themes` defines the visual design tokens, color palette contracts, contrast compliance algorithms, and theme registry for terminal rendering.
+`@zyanx04/themes` defines the visual design tokens, color palette contracts, contrast compliance algorithms, and theme registry for terminal rendering.
 
 ## Features
 
@@ -20,9 +20,9 @@ Theme engine, semantic design tokens, and color resolution for AOE (Agent Output
 ## Installation
 
 ```bash
-npm install @aoe/themes
+npm install @zyanx04/themes
 # or
-pnpm add @aoe/themes
+pnpm add @zyanx04/themes
 ```
 
 ## Quick Start
@@ -35,7 +35,7 @@ import {
   LIGHT_THEME,
   HIGH_CONTRAST_THEME,
   type AoeTheme,
-} from '@aoe/themes';
+} from '@zyanx04/themes';
 
 // Retrieve a registered theme by name
 const theme: AoeTheme = defaultRegistry.getTheme('obsidian');
@@ -53,7 +53,7 @@ console.log('Running symbol:', resolved.symbols.running);
 ## Creating a Custom Theme
 
 ```typescript
-import { registerTheme, validateTheme, type ThemeDefinition } from '@aoe/themes';
+import { registerTheme, validateTheme, type ThemeDefinition } from '@zyanx04/themes';
 
 const myTheme: ThemeDefinition = {
   id: 'cyberpunk',

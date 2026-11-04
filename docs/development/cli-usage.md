@@ -16,7 +16,7 @@ pnpm build
 node apps/cli/dist/bin.js --help
 
 # Or run via pnpm
-pnpm --filter @aoe/cli exec aoe --help
+pnpm --filter @zyanx04/cli exec aoe --help
 ```
 
 ---
@@ -25,7 +25,7 @@ pnpm --filter @aoe/cli exec aoe --help
 
 ### 2.1 `aoe render`
 
-Reads canonical AOE Protocol JSONL events from standard input, validates them against `@aoe/protocol`, and renders live execution state using `@aoe/core` and `@aoe/renderer`.
+Reads canonical AOE Protocol JSONL events from standard input, validates them against `@zyanx04/protocol`, and renders live execution state using `@zyanx04/core` and `@zyanx04/renderer`.
 
 ```bash
 # Render from a file
@@ -48,7 +48,7 @@ aoe render --format static < events.jsonl
 
 ### 2.2 `aoe pipe`
 
-The universal ingestion entrypoint for receiving external AI coding agent output and normalizing it into AOE presentation via `@aoe/adapters`.
+The universal ingestion entrypoint for receiving external AI coding agent output and normalizing it into AOE presentation via `@zyanx04/adapters`.
 
 ```bash
 # Explicit Claude Code hook payload
@@ -134,7 +134,7 @@ aoe skill path
 | --------- | ----------------- | -------------------------------------------------- | --------------------------------------------------------------- |
 | `0`       | Success           | Normal operation                                   | No action needed.                                               |
 | `2`       | Invalid Arguments | Unknown flag or non-piped stdin on `render`/`pipe` | Ensure input is piped via stdin, e.g. `cat file \| aoe render`. |
-| `3`       | Protocol Error    | Input JSONL failed `@aoe/protocol` schema          | Ensure payloads conform to AOE Protocol v1.0.0 envelopes.       |
+| `3`       | Protocol Error    | Input JSONL failed `@zyanx04/protocol` schema      | Ensure payloads conform to AOE Protocol v1.0.0 envelopes.       |
 | `4`       | Adapter Error     | Unknown agent or auto-detection failed             | Pass `--agent <name>` explicitly.                               |
 | `5`       | Config Error      | Malformed user `config.json`                       | Check JSON formatting in `$XDG_CONFIG_HOME/aoe/config.json`.    |
 | `6`       | Environment Error | Missing dependencies or `SKILL.md`                 | Run `aoe doctor` for exact diagnostic details.                  |

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { PROTOCOL_NAME, PROTOCOL_VERSION, ProtocolEnvelopeSchema } from './index.js';
 
-describe('@aoe/protocol', () => {
+describe('@zyanx04/protocol', () => {
   it('exports expected protocol name and version', () => {
     expect(PROTOCOL_NAME).toBe('aoe');
     expect(PROTOCOL_VERSION).toBe('1.0.0');

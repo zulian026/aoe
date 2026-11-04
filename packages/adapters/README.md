@@ -1,10 +1,10 @@
-# @aoe/adapters
+# @zyanx04/adapters
 
 Universal agent ingestion, normalization, and stream parsing adapters for AOE (Agent Output Enhancement).
 
 ## Overview
 
-`@aoe/adapters` translates disparate outputs, hook events, and telemetry formats from AI coding agents (such as Anthropic Claude Code, Google Gemini CLI, and custom agents) into canonical `@aoe/protocol` events.
+`@zyanx04/adapters` translates disparate outputs, hook events, and telemetry formats from AI coding agents (such as Anthropic Claude Code, Google Gemini CLI, and custom agents) into canonical `@zyanx04/protocol` events.
 
 ## Supported Adapters
 
@@ -23,15 +23,15 @@ The adapter layer acts as the first line of defense before events enter the engi
 ## Installation
 
 ```bash
-npm install @aoe/adapters @aoe/protocol
+npm install @zyanx04/adapters @zyanx04/protocol
 # or
-pnpm add @aoe/adapters @aoe/protocol
+pnpm add @zyanx04/adapters @zyanx04/protocol
 ```
 
 ## Quick Start
 
 ```typescript
-import { createDefaultAdapterManager } from '@aoe/adapters';
+import { createDefaultAdapterManager } from '@zyanx04/adapters';
 
 const manager = createDefaultAdapterManager();
 
@@ -52,8 +52,8 @@ for (const event of canonicalEvents) {
 ## Creating a Custom Adapter
 
 ```typescript
-import type { AgentAdapter, AdapterSession, IngestContext } from '@aoe/adapters';
-import type { AoeEvent } from '@aoe/protocol';
+import type { AgentAdapter, AdapterSession, IngestContext } from '@zyanx04/adapters';
+import type { AoeEvent } from '@zyanx04/protocol';
 
 export class MyCustomAdapter implements AgentAdapter {
   public readonly id = 'my-custom-agent';

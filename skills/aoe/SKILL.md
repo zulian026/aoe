@@ -103,7 +103,7 @@ AOE functions autonomously without the engine binary. Follow this non-intrusive 
 2. **Fallback Mode**: If `AOE_ACTIVE` is unset or unavailable, default directly to native terminal Markdown.
 3. **Safety Restrictions**:
    - Never run unverified shell commands to search for an engine.
-   - Never attempt to install `@aoe/cli` or dependencies automatically.
+   - Never attempt to install `@zyanx04/cli` or dependencies automatically.
    - Never break or fail execution if the engine is absent.
 
 See details in [engine-integration.md](references/engine-integration.md).

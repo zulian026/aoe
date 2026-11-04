@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Engine, ConflictingEventIdError } from '../index.js';
-import { createEvent } from '@aoe/protocol';
+import { createEvent } from '@zyanx04/protocol';
 
 describe('Event Deduplication', () => {
   it('idempotently handles identical duplicate event', () => {

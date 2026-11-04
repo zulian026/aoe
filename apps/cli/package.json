@@ -1,6 +1,6 @@
 {
-  "name": "@aoe/cli",
-  "version": "0.1.0",
+  "name": "@zyanx04/cli",
+  "version": "0.1.1",
   "type": "module",
   "description": "Command-line interface for the AOE presentation engine",
   "license": "MIT",
@@ -50,12 +50,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@aoe/adapters": "workspace:*",
-    "@aoe/components": "workspace:*",
-    "@aoe/core": "workspace:*",
-    "@aoe/protocol": "workspace:*",
-    "@aoe/renderer": "workspace:*",
-    "@aoe/themes": "workspace:*",
+    "@zyanx04/adapters": "workspace:*",
+    "@zyanx04/components": "workspace:*",
+    "@zyanx04/core": "workspace:*",
+    "@zyanx04/protocol": "workspace:*",
+    "@zyanx04/renderer": "workspace:*",
+    "@zyanx04/themes": "workspace:*",
     "commander": "^13.1.0",
     "zod": "^3.24.2"
   }

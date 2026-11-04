@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-The **AOE Core Engine** (`@aoe/core`) is the stateful orchestration and event processing foundation of AOE. It ingests validated `AoeEvent` streams adhering to the Universal Event Protocol (`v1.0.0`), enforces session and task lifecycles, tracks sequence numbers, eliminates duplicate events, manages task hierarchies, and maintains an in-memory event store.
+The **AOE Core Engine** (`@zyanx04/core`) is the stateful orchestration and event processing foundation of AOE. It ingests validated `AoeEvent` streams adhering to the Universal Event Protocol (`v1.0.0`), enforces session and task lifecycles, tracks sequence numbers, eliminates duplicate events, manages task hierarchies, and maintains an in-memory event store.
 
 ---
 
@@ -10,7 +10,7 @@ The **AOE Core Engine** (`@aoe/core`) is the stateful orchestration and event pr
 
 ```mermaid
 graph TD
-    subgraph CoreEngine["@aoe/core Engine Architecture"]
+    subgraph CoreEngine["@zyanx04/core Engine Architecture"]
         Engine["Engine Facade (engine.ts)"]
         Processor["EventProcessor (event-processor.ts)"]
         SessionMgr["SessionManager (session-manager.ts)"]
@@ -53,8 +53,8 @@ graph TD
 ## 3. Public Engine API
 
 ```typescript
-import { Engine } from '@aoe/core';
-import { createEvent } from '@aoe/protocol';
+import { Engine } from '@zyanx04/core';
+import { createEvent } from '@zyanx04/protocol';
 
 const engine = new Engine({
   maxBufferSize: 100,

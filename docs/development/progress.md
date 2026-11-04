@@ -30,13 +30,13 @@
 
 ### M02: Universal Event Protocol
 
-- **Goal**: Build a versioned, validated, serializable event protocol (`@aoe/protocol`) enabling external AI coding agents and tools to communicate structured execution telemetry to AOE Engine.
+- **Goal**: Build a versioned, validated, serializable event protocol (`@zyanx04/protocol`) enabling external AI coding agents and tools to communicate structured execution telemetry to AOE Engine.
 - **Status**: Completed (Commit `35974e9`).
 - **Deliverables**: 12 canonical event schemas, Zod validation, JSONL streaming parser with buffer reassembly, deterministic serialization, protocol documentation.
 
 ### M03: Core Engine
 
-- **Goal**: Implement stateful execution engine (`@aoe/core`) converting protocol events into reliable, atomic state snapshots, managing sessions, task trees, progress integrity, and subscriptions.
+- **Goal**: Implement stateful execution engine (`@zyanx04/core`) converting protocol events into reliable, atomic state snapshots, managing sessions, task trees, progress integrity, and subscriptions.
 - **Status**: Completed (Commit `d783235`).
 - **Deliverables**:
   - `packages/core/src/session-manager.ts`: Concurrent session containers, lifecycle transitions.
@@ -58,7 +58,7 @@
 
 ### M04: Terminal Renderer
 
-- **Goal**: Transform immutable `SessionSnapshot` updates into structured, terminal UI presentation components (`@aoe/components`) and an orchestrator (`@aoe/renderer`) supporting both interactive TTY and static stream modes.
+- **Goal**: Transform immutable `SessionSnapshot` updates into structured, terminal UI presentation components (`@zyanx04/components`) and an orchestrator (`@zyanx04/renderer`) supporting both interactive TTY and static stream modes.
 - **Status**: Completed.
 - **Deliverables**:
   - `packages/components/src/`:
@@ -88,7 +88,7 @@
 
 ### M05: Theme Engine
 
-- **Goal**: Implement a complete, extensible semantic Theme Engine (`@aoe/themes`) decoupled from presentation components, providing design tokens, built-in themes, capability resolution, runtime theme switching, and deep immutability.
+- **Goal**: Implement a complete, extensible semantic Theme Engine (`@zyanx04/themes`) decoupled from presentation components, providing design tokens, built-in themes, capability resolution, runtime theme switching, and deep immutability.
 - **Status**: Completed.
 - **Deliverables**:
   - `packages/themes/src/`:
@@ -118,7 +118,7 @@
 
 ### M06: Universal Agent Integration
 
-- **Goal**: Implement universal adapter architecture in `@aoe/adapters` connecting external AI coding agents (Claude Code, Gemini CLI, Generic JSONL) to AOE, normalizing proprietary hooks and streams into canonical `@aoe/protocol` envelopes while enforcing strict privacy and isolation.
+- **Goal**: Implement universal adapter architecture in `@zyanx04/adapters` connecting external AI coding agents (Claude Code, Gemini CLI, Generic JSONL) to AOE, normalizing proprietary hooks and streams into canonical `@zyanx04/protocol` envelopes while enforcing strict privacy and isolation.
 - **Status**: Completed.
 - **Deliverables**:
   - `packages/adapters/src/`:
@@ -152,7 +152,7 @@
 
 ### M07: CLI Tooling & Runtime Integration
 
-- **Goal**: Implement the official standalone `aoe` CLI executable in `apps/cli`, wiring streaming input readers, user configuration, `@aoe/adapters`, `@aoe/protocol`, `@aoe/core`, and `@aoe/renderer` into five production-ready command suites.
+- **Goal**: Implement the official standalone `aoe` CLI executable in `apps/cli`, wiring streaming input readers, user configuration, `@zyanx04/adapters`, `@zyanx04/protocol`, `@zyanx04/core`, and `@zyanx04/renderer` into five production-ready command suites.
 - **Status**: Completed.
 - **Deliverables**:
   - `apps/cli/src/`:
@@ -205,7 +205,7 @@
     - Machine-readable `--json` flag on `aoe doctor` emitting pure JSON to stdout and diagnostics to stderr.
   - **Packaging & Clean Installation**:
     - Package metadata (`files`, `license`, `repository`, `engines`, `keywords`) configured across all monorepo packages.
-    - Automatic packaging of `skills/aoe` into `@aoe/cli` package tarball.
+    - Automatic packaging of `skills/aoe` into `@zyanx04/cli` package tarball.
     - Verified clean installation from packed tarballs in fresh external directory executing all CLI commands.
   - **Performance Baseline**:
     - Reproducible benchmark script (`scripts/benchmark.js` / `pnpm benchmark`).

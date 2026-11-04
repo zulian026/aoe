@@ -13,7 +13,7 @@ The AOE Universal Event Protocol uses **Line-Delimited JSON (JSONL / NDJSON)** o
 
 ## 2. Serialization API
 
-Exported by `@aoe/protocol`:
+Exported by `@zyanx04/protocol`:
 
 ```typescript
 import {
@@ -22,7 +22,7 @@ import {
   safeParseEvent,
   validateEvent,
   parseEventStream,
-} from '@aoe/protocol';
+} from '@zyanx04/protocol';
 ```
 
 ### `serializeEvent(event, options?)`
@@ -70,7 +70,7 @@ if (result.success) {
 In network pipes or streaming subprocesses, chunks rarely align perfectly with line boundaries. `parseEventStream` maintains an internal string buffer to reassemble split lines across chunk boundaries:
 
 ```typescript
-import { parseEventStream } from '@aoe/protocol';
+import { parseEventStream } from '@zyanx04/protocol';
 
 async function ingestStream(chunks: AsyncIterable<string>) {
   for await (const event of parseEventStream(chunks, {

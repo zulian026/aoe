@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render } from 'ink-testing-library';
 import { Text } from 'ink';
-import { OBSIDIAN_THEME, LIGHT_THEME, HIGH_CONTRAST_THEME, type AoeTheme } from '@aoe/themes';
+import { OBSIDIAN_THEME, LIGHT_THEME, HIGH_CONTRAST_THEME, type AoeTheme } from '@zyanx04/themes';
 import {
   ThemeProvider,
   useTheme,

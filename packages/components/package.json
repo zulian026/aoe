@@ -1,6 +1,6 @@
 {
-  "name": "@aoe/components",
-  "version": "0.1.0",
+  "name": "@zyanx04/components",
+  "version": "0.1.1",
   "type": "module",
   "description": "Terminal UI components for AOE presentation",
   "license": "MIT",
@@ -44,7 +44,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@aoe/themes": "workspace:*",
+    "@zyanx04/themes": "workspace:*",
     "ink": "^8.0.0",
     "react": "^19.3.1"
   },

@@ -1,6 +1,6 @@
 {
-  "name": "@aoe/protocol",
-  "version": "0.1.0",
+  "name": "@zyanx04/protocol",
+  "version": "0.1.1",
   "type": "module",
   "description": "Universal Event Protocol schemas, types, and validators for AOE",
   "license": "MIT",

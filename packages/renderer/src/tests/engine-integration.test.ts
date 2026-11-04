@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Engine } from '@aoe/core';
-import { createEvent } from '@aoe/protocol';
+import { Engine } from '@zyanx04/core';
+import { createEvent } from '@zyanx04/protocol';
 import { TerminalRenderer } from '../terminal-renderer.js';
 import { MockTerminalStream } from './test-utils.js';
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { EventStore } from '../index.js';
-import { createEvent } from '@aoe/protocol';
+import { createEvent } from '@zyanx04/protocol';
 
 describe('EventStore', () => {
   it('stores and retrieves events by eventId and session query', () => {

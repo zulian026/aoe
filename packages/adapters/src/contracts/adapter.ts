@@ -1,4 +1,4 @@
-import type { AoeEvent, ProtocolEnvelope } from '@aoe/protocol';
+import type { AoeEvent, ProtocolEnvelope } from '@zyanx04/protocol';
 import type { AdapterContext, AdapterDetectionResult } from './context.js';
 import type { AdapterSession } from './session.js';
 

@@ -32,22 +32,22 @@ importers:
 
   apps/cli:
     dependencies:
-      '@aoe/adapters':
+      '@zyanx04/adapters':
         specifier: workspace:*
         version: link:../../packages/adapters
-      '@aoe/components':
+      '@zyanx04/components':
         specifier: workspace:*
         version: link:../../packages/components
-      '@aoe/core':
+      '@zyanx04/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@aoe/protocol':
+      '@zyanx04/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
-      '@aoe/renderer':
+      '@zyanx04/renderer':
         specifier: workspace:*
         version: link:../../packages/renderer
-      '@aoe/themes':
+      '@zyanx04/themes':
         specifier: workspace:*
         version: link:../../packages/themes
       commander:
@@ -59,23 +59,23 @@ importers:
 
   packages/adapters:
     dependencies:
-      '@aoe/protocol':
+      '@zyanx04/protocol':
         specifier: workspace:*
         version: link:../protocol
       zod:
         specifier: ^3.24.2
         version: 3.25.76
     devDependencies:
-      '@aoe/core':
+      '@zyanx04/core':
         specifier: workspace:*
         version: link:../core
-      '@aoe/renderer':
+      '@zyanx04/renderer':
         specifier: workspace:*
         version: link:../renderer
 
   packages/components:
     dependencies:
-      '@aoe/themes':
+      '@zyanx04/themes':
         specifier: workspace:*
         version: link:../themes
       ink:
@@ -94,7 +94,7 @@ importers:
 
   packages/core:
     dependencies:
-      '@aoe/protocol':
+      '@zyanx04/protocol':
         specifier: workspace:*
         version: link:../protocol
 
@@ -106,16 +106,16 @@ importers:
 
   packages/renderer:
     dependencies:
-      '@aoe/components':
+      '@zyanx04/components':
         specifier: workspace:*
         version: link:../components
-      '@aoe/core':
+      '@zyanx04/core':
         specifier: workspace:*
         version: link:../core
-      '@aoe/protocol':
+      '@zyanx04/protocol':
         specifier: workspace:*
         version: link:../protocol
-      '@aoe/themes':
+      '@zyanx04/themes':
         specifier: workspace:*
         version: link:../themes
       ink:

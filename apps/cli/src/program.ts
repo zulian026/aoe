@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { PROTOCOL_VERSION } from '@aoe/protocol';
+import { PROTOCOL_VERSION } from '@zyanx04/protocol';
 import { registerRenderCommand } from './commands/render.js';
 import { registerPipeCommand } from './commands/pipe.js';
 import { registerThemeCommand } from './commands/theme.js';
@@ -8,7 +8,7 @@ import { registerSkillCommand } from './commands/skill.js';
 import { formatErrorOutput } from './utils/errors.js';
 import { ExitCode } from './runtime/exit-codes.js';
 
-export const CLI_VERSION = '0.1.0';
+export const CLI_VERSION = '0.1.1';
 
 export function createProgram(): Command {
   const program = new Command();

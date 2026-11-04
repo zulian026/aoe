@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Engine } from '../index.js';
-import { createEvent } from '@aoe/protocol';
+import { createEvent } from '@zyanx04/protocol';
 
 describe('StateDispatcher', () => {
   it('notifies subscribers upon state change and supports unsubscription', () => {

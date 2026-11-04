@@ -8,7 +8,7 @@ import {
   resolveThemeColor as baseResolveThemeColor,
   resolveStatusColor as baseResolveStatusColor,
   resolveSymbol as baseResolveSymbol,
-} from '@aoe/themes';
+} from '@zyanx04/themes';
 
 /**
  * Checks whether NO_COLOR is active in the environment.

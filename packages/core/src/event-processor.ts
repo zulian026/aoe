@@ -5,7 +5,7 @@ import {
   type DiagnosticEmittedPayload,
   type ProgressUpdatedPayload,
   type LogEmittedPayload,
-} from '@aoe/protocol';
+} from '@zyanx04/protocol';
 import type { EventProcessingResult } from './types.js';
 import { SessionManager, SessionStateContainer } from './session-manager.js';
 import { EventStore } from './event-store.js';

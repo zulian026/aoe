@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.1] - 2026-11-04
+
+### Changed
+
+- **npm Distribution Namespace**: Migrated distribution package namespace from `@aoe/*` to `@zyanx04/*` (`@zyanx04/protocol`, `@zyanx04/themes`, `@zyanx04/core`, `@zyanx04/components`, `@zyanx04/adapters`, `@zyanx04/renderer`, `@zyanx04/cli`).
+- Product identity (`AOE — Agent Output Enhancement`), CLI binary name (`aoe`), environment variables (`AOE_*`), and Universal Protocol identifier (`aoe`) remain strictly preserved.
+
+### Fixed
+
+- **Cross-Platform CI Portability**: Resolved Windows CRLF frontmatter parsing in `skill-validation.test.ts` and normalized path separator assertions in `skill-command.test.ts`.
+
+---
+
 ## [0.1.0] - 2026-11-03
 
 ### Initial Public Release

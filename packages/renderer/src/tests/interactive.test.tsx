@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { renderToString } from 'ink';
 import { InteractiveApp } from '../interactive-app.js';
 import { createMockSnapshot } from './test-utils.js';
-import type { TaskSnapshot } from '@aoe/core';
+import type { TaskSnapshot } from '@zyanx04/core';
 
 describe('InteractiveApp Component', () => {
   it('renders complete SessionSnapshot in interactive view', () => {

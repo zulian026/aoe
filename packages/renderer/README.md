@@ -1,10 +1,10 @@
-# @aoe/renderer
+# @zyanx04/renderer
 
 Hybrid terminal rendering engine orchestrating interactive Ink apps and linear static outputs for AOE (Agent Output Enhancement).
 
 ## Overview
 
-`@aoe/renderer` connects `@aoe/core` state management with `@aoe/components` presentation. It intelligently selects between **Interactive TTY** rendering (using Ink 8 and React 19) and **Static Non-TTY** rendering (using line-buffered plain text), guaranteeing clean output in every terminal environment.
+`@zyanx04/renderer` connects `@zyanx04/core` state management with `@zyanx04/components` presentation. It intelligently selects between **Interactive TTY** rendering (using Ink 8 and React 19) and **Static Non-TTY** rendering (using line-buffered plain text), guaranteeing clean output in every terminal environment.
 
 ## Features
 
@@ -19,16 +19,16 @@ Hybrid terminal rendering engine orchestrating interactive Ink apps and linear s
 ## Installation
 
 ```bash
-npm install @aoe/renderer @aoe/core @aoe/components @aoe/themes
+npm install @zyanx04/renderer @zyanx04/core @zyanx04/components @zyanx04/themes
 # or
-pnpm add @aoe/renderer @aoe/core @aoe/components @aoe/themes
+pnpm add @zyanx04/renderer @zyanx04/core @zyanx04/components @zyanx04/themes
 ```
 
 ## Quick Start
 
 ```typescript
-import { TerminalRenderer, StaticRenderer } from '@aoe/renderer';
-import { Engine } from '@aoe/core';
+import { TerminalRenderer, StaticRenderer } from '@zyanx04/renderer';
+import { Engine } from '@zyanx04/core';
 
 const engine = new Engine();
 
@@ -52,7 +52,7 @@ await renderer.stop();
 ### Direct Static Rendering
 
 ```typescript
-import { StaticRenderer } from '@aoe/renderer';
+import { StaticRenderer } from '@zyanx04/renderer';
 
 const staticRenderer = new StaticRenderer({
   stream: process.stdout,

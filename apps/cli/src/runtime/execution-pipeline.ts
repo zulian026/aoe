@@ -1,15 +1,15 @@
-import { Engine, type SessionSnapshot } from '@aoe/core';
+import { Engine, type SessionSnapshot } from '@zyanx04/core';
 import {
   TerminalRenderer,
   StaticRenderer,
   isInteractiveSuitable,
   type RendererMode,
-} from '@aoe/renderer';
-import { defaultRegistry, type AoeTheme } from '@aoe/themes';
+} from '@zyanx04/renderer';
+import { defaultRegistry, type AoeTheme } from '@zyanx04/themes';
 import { CliError } from '../utils/errors.js';
 import { ExitCode } from './exit-codes.js';
 import { signalHandler } from './signal-handler.js';
-import type { AoeEvent } from '@aoe/protocol';
+import type { AoeEvent } from '@zyanx04/protocol';
 
 export interface ExecutionPipelineOptions {
   mode?: RendererMode;

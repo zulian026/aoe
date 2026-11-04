@@ -4,7 +4,7 @@ import {
   validateEvent,
   type AoeEvent,
   type SessionEndedEvent,
-} from '@aoe/protocol';
+} from '@zyanx04/protocol';
 import type {
   AgentAdapter,
   AdapterContext,

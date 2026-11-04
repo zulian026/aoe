@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TerminalRenderer, createRendererStub } from '../terminal-renderer.js';
 import { MockTerminalStream, createMockSnapshot } from './test-utils.js';
-import type { SessionSnapshot } from '@aoe/core';
+import type { SessionSnapshot } from '@zyanx04/core';
 
 describe('TerminalRenderer Orchestrator', () => {
   const originalEnv = { ...process.env };

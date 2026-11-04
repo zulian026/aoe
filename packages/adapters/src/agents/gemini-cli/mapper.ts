@@ -11,7 +11,7 @@ import {
   type FileChangedEvent,
   type LogEmittedEvent,
   type ErrorOccurredEvent,
-} from '@aoe/protocol';
+} from '@zyanx04/protocol';
 import type { AdapterSession } from '../../contracts/session.js';
 import { sanitizeAgentText, sanitizePayload } from '../../utils/sanitizer.js';
 import {

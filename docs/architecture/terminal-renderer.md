@@ -2,42 +2,42 @@
 
 ## 1. Overview
 
-The AOE Terminal Renderer (`@aoe/renderer`) coordinates presentation of structured AI coding agent execution states in terminal environments. It subscribes to immutable state updates (`SessionSnapshot`) produced by `@aoe/core` and renders them through modular UI components (`@aoe/components`) using Ink, Yoga, and ANSI streams.
+The AOE Terminal Renderer (`@zyanx04/renderer`) coordinates presentation of structured AI coding agent execution states in terminal environments. It subscribes to immutable state updates (`SessionSnapshot`) produced by `@zyanx04/core` and renders them through modular UI components (`@zyanx04/components`) using Ink, Yoga, and ANSI streams.
 
 ```
 AI Agent / Event Producer
           │
           ▼
-   @aoe/protocol
+   @zyanx04/protocol
           │
           ▼
-      @aoe/core (SessionSnapshot)
+      @zyanx04/core (SessionSnapshot)
           │
           ▼
-    @aoe/renderer (Orchestrator)
+    @zyanx04/renderer (Orchestrator)
     ├── Mode Detection (auto | interactive | static)
     ├── Terminal Environment (TTY, CI, NO_COLOR, Resize)
     └── Lifecycle & Restoration (SIGINT, SIGTERM, Screen Buffers)
           │
           ▼
-    @aoe/components (Presentation Elements)
+    @zyanx04/components (Presentation Elements)
     └── Terminal UI (Interactive Ink or Linear Static Stream)
 ```
 
 ## 2. Package Responsibilities & Boundaries
 
-- **`@aoe/core`**: Owns business and session execution state, ingests protocol events, sequence integrity, deduplication, and snapshot immutability. Contains zero terminal rendering logic.
-- **`@aoe/renderer`**: Coordinates rendering lifecycle, manages subscriptions to the core engine, resolves TTY/non-TTY modes, monitors terminal dimensions and signals (`SIGWINCH`, `SIGINT`, `SIGTERM`), and isolates rendering exceptions.
-- **`@aoe/components`**: Provides reusable, typed presentation components (status badges, progress bars, task summaries, file changes, diagnostics, logs, results). Contains no dependencies on Core Engine internals.
-- **`@aoe/themes`**: Supplies semantic design tokens and color palettes (such as Obsidian theme).
+- **`@zyanx04/core`**: Owns business and session execution state, ingests protocol events, sequence integrity, deduplication, and snapshot immutability. Contains zero terminal rendering logic.
+- **`@zyanx04/renderer`**: Coordinates rendering lifecycle, manages subscriptions to the core engine, resolves TTY/non-TTY modes, monitors terminal dimensions and signals (`SIGWINCH`, `SIGINT`, `SIGTERM`), and isolates rendering exceptions.
+- **`@zyanx04/components`**: Provides reusable, typed presentation components (status badges, progress bars, task summaries, file changes, diagnostics, logs, results). Contains no dependencies on Core Engine internals.
+- **`@zyanx04/themes`**: Supplies semantic design tokens and color palettes (such as Obsidian theme).
 
 ## 3. Public API Specification
 
 ### Instantiation & Options
 
 ```typescript
-import { Engine } from '@aoe/core';
-import { TerminalRenderer, type TerminalRendererOptions } from '@aoe/renderer';
+import { Engine } from '@zyanx04/core';
+import { TerminalRenderer, type TerminalRendererOptions } from '@zyanx04/renderer';
 
 const engine = new Engine();
 const sessionId = 'sess_abc123';
@@ -112,4 +112,4 @@ Inspects runtime terminal environment capabilities via `isInteractiveSuitable()`
 Rendering errors are caught and isolated in `renderSnapshot()`:
 
 - A failure in rendering or formatting never throws back into the Core Engine pipeline.
-- State integrity in `@aoe/core` remains strictly protected.
+- State integrity in `@zyanx04/core` remains strictly protected.

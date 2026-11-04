@@ -33,24 +33,24 @@ AI coding agents (e.g. Claude Code, Gemini CLI, Cursor, and custom CLI agents) e
              (Claude Code / Gemini CLI / Generic)
                               │
                               ▼
-                       @aoe/adapters
+                       @zyanx04/adapters
                  (Format Detection & Mapping)
                               │
                               ▼
-                       @aoe/protocol
+                       @zyanx04/protocol
              (Canonical Event Schema & Validation)
                               │
                               ▼
-                         @aoe/core
+                         @zyanx04/core
              (Session State, Tasks, Deduplication)
                               │
                               ▼
-                       @aoe/renderer
+                       @zyanx04/renderer
              (Screen Orchestrator & Mode Selection)
                      │                 │
                      ▼                 ▼
              Interactive TTY     Non-TTY / CI Pipe
-             (@aoe/components)    (StaticRenderer)
+            (@zyanx04/components) (StaticRenderer)
 ```
 
 ### Monorepo Packages
@@ -93,13 +93,13 @@ AI coding agents (e.g. Claude Code, Gemini CLI, Cursor, and custom CLI agents) e
 ### Global Installation via npm
 
 ```bash
-npm install -g @aoe/cli
+npm install -g @zyanx04/cli
 ```
 
 ### Local Project Installation
 
 ```bash
-pnpm add @aoe/cli
+pnpm add @zyanx04/cli
 ```
 
 ---

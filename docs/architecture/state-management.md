@@ -2,7 +2,7 @@
 
 ## 1. State Model Architecture
 
-The AOE Core Engine exposes an immutable, read-only state snapshot model designed for presentation layers, renderers, and subscribers. Internal mutable state containers are strictly isolated inside `@aoe/core`.
+The AOE Core Engine exposes an immutable, read-only state snapshot model designed for presentation layers, renderers, and subscribers. Internal mutable state containers are strictly isolated inside `@zyanx04/core`.
 
 ---
 

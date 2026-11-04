@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { Readable } from 'node:stream';
-import { parseEventStream, ProtocolError } from '@aoe/protocol';
-import { maskSecrets, sanitizeTerminalText, stripAnsi } from '@aoe/components';
+import { parseEventStream, ProtocolError } from '@zyanx04/protocol';
+import { maskSecrets, sanitizeTerminalText, stripAnsi } from '@zyanx04/components';
 import {
   maskSecrets as adapterMaskSecrets,
   stripPrivateReasoning,
   sanitizePayload,
-} from '@aoe/adapters';
+} from '@zyanx04/adapters';
 import { readStreamChunks } from '../runtime/stdin-reader.js';
 import { CliError } from '../utils/errors.js';
 

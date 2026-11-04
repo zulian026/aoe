@@ -1,10 +1,10 @@
-# @aoe/protocol
+# @zyanx04/protocol
 
 Canonical event protocol definitions, schemas, and streaming JSONL serialization for AOE (Agent Output Enhancement).
 
 ## Overview
 
-`@aoe/protocol` defines the versioned, validated event envelope and canonical event schemas that AI coding agents and external tools use to communicate structured execution telemetry to the AOE Engine.
+`@zyanx04/protocol` defines the versioned, validated event envelope and canonical event schemas that AI coding agents and external tools use to communicate structured execution telemetry to the AOE Engine.
 
 Protocol Version: **1.0.0**
 
@@ -18,15 +18,15 @@ Protocol Version: **1.0.0**
 ## Installation
 
 ```bash
-npm install @aoe/protocol
+npm install @zyanx04/protocol
 # or
-pnpm add @aoe/protocol
+pnpm add @zyanx04/protocol
 ```
 
 ## Quick Start
 
 ```typescript
-import { parseEventStream, serializeEvent, validateEvent, type AoeEvent } from '@aoe/protocol';
+import { parseEventStream, serializeEvent, validateEvent, type AoeEvent } from '@zyanx04/protocol';
 
 // Validate an unknown event object
 const rawEvent = {

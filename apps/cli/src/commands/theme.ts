@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { defaultRegistry } from '@aoe/themes';
+import { defaultRegistry } from '@zyanx04/themes';
 import { loadConfig, saveConfig } from '../config/index.js';
 import { CliError } from '../utils/errors.js';
 import { ExitCode } from '../runtime/exit-codes.js';

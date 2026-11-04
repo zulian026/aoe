@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Engine, TerminalSessionError } from '../index.js';
-import { createEvent } from '@aoe/protocol';
+import { createEvent } from '@zyanx04/protocol';
 
 describe('Engine Session Management', () => {
   it('manages multiple independent concurrent sessions', () => {

@@ -1,6 +1,6 @@
 # CLI Tooling & Runtime Architecture
 
-This document describes the command-line interface architecture and runtime integration implemented in `@aoe/cli` (Milestone 07) for the AOE (Agent Output Enhancement) system.
+This document describes the command-line interface architecture and runtime integration implemented in `@zyanx04/cli` (Milestone 07) for the AOE (Agent Output Enhancement) system.
 
 ---
 
@@ -13,7 +13,7 @@ The CLI application (`apps/cli`, binary executable `aoe`) serves as the universa
                                        |
                                        v
                            +-----------------------+
-                           |     @aoe/cli (aoe)    |
+                           |     @zyanx04/cli (aoe)    |
                            |   (Commander Parser)  |
                            +-----------+-----------+
                                        |
@@ -29,7 +29,7 @@ The CLI application (`apps/cli`, binary executable `aoe`) serves as the universa
                    |                                       |
                    v                                       v
          +-------------------+                   +-------------------+
-         |   @aoe/protocol   |                   |   @aoe/adapters   |
+         |   @zyanx04/protocol   |                   |   @zyanx04/adapters   |
          | (parseEventStream)|                   | (AdapterManager)  |
          +---------+---------+                   +---------+---------+
                    |                                       |
@@ -38,13 +38,13 @@ The CLI application (`apps/cli`, binary executable `aoe`) serves as the universa
                                        |
                                        v
                            +-----------------------+
-                           |       @aoe/core       |
+                           |       @zyanx04/core       |
                            |   (Execution Engine)  |
                            +-----------+-----------+
                                        |
                                        v (Immutable SessionSnapshot)
                            +-----------------------+
-                           |     @aoe/renderer     |
+                           |     @zyanx04/renderer     |
                            | (ExecutionPipeline)   |
                            +-----------+-----------+
                                        |
@@ -66,7 +66,7 @@ The CLI application (`apps/cli`, binary executable `aoe`) serves as the universa
 
 Located in `apps/cli/src/runtime/execution-pipeline.ts`:
 
-- Coordinates the lifecycle between `@aoe/core`'s `Engine` and `@aoe/renderer`'s `TerminalRenderer` or `StaticRenderer`.
+- Coordinates the lifecycle between `@zyanx04/core`'s `Engine` and `@zyanx04/renderer`'s `TerminalRenderer` or `StaticRenderer`.
 - Automatically selects the rendering strategy:
   - `interactive`: Uses full-screen Ink components when standard output is an interactive TTY and not running in CI.
   - `static`: Uses line-oriented linear text stream formatting for CI environments, redirected stdout, or headless pipes.

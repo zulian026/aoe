@@ -13,7 +13,7 @@ The AOE Engine Integration & Fallback Reference defines the procedure by which A
    - Check if an environment variable signals an active AOE Engine session (e.g., `AOE_ACTIVE=1` or `AOE_SESSION_ID`).
    - If an integration socket or file descriptor is explicitly provided in the environment, verify it is open and non-blocking.
    - Never execute untrusted shell commands or run unverified scripts to probe for the engine.
-3. **No Automatic Installation**: An agent must **never** automatically run `npm install -g @aoe/cli`, `pnpm add`, `pip install`, or any package manager command to install the AOE Engine unless explicitly ordered to do so by the human user.
+3. **No Automatic Installation**: An agent must **never** automatically run `npm install -g @zyanx04/cli`, `pnpm add`, `pip install`, or any package manager command to install the AOE Engine unless explicitly ordered to do so by the human user.
 4. **Agent-Agnostic Design**: Instructions, event formats, and fallback patterns must remain agent-agnostic:
    - Do not rely on proprietary agent internal APIs or non-standard toolhooks.
    - Do not assume an agent has access to specific tools, file systems, or terminal modes.
@@ -125,7 +125,7 @@ _Note: The table above documents architectural compatibility targets. No specifi
 ```markdown
 <!-- BAD: Agent executes package installation without permission -->
 
-$ npm install -g @aoe/cli
+$ npm install -g @zyanx04/cli
 Installing AOE engine because it was missing...
 ```
 
@@ -137,7 +137,7 @@ _Why this is bad_: Violates the no-automatic-execution rule. Agents must never i
 <!-- BAD: Crashing or failing because AOE Engine is not found -->
 
 Error: Cannot render output because the AOE Engine binary was not found in PATH.
-Please install @aoe/cli first.
+Please install @zyanx04/cli first.
 ```
 
 _Why this is bad_: Violates the portable-first principle. The skill must always provide beautiful, readable native markdown output when the engine is absent.

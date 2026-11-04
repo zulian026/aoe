@@ -62,11 +62,11 @@ aoe/
 ### Dependency Rules:
 
 - Packages MUST maintain a strict DAG (Directed Acyclic Graph).
-- `@aoe/protocol` and `@aoe/themes` have no internal workspace dependencies.
-- `@aoe/core` depends only on `@aoe/protocol`.
-- `@aoe/components` depends only on `@aoe/themes`.
-- `@aoe/renderer` depends on `@aoe/components`, `@aoe/core`, `@aoe/protocol`, and `@aoe/themes`.
-- `@aoe/adapters` depends on `@aoe/protocol`.
+- `@zyanx04/protocol` and `@zyanx04/themes` have no internal workspace dependencies.
+- `@zyanx04/core` depends only on `@zyanx04/protocol`.
+- `@zyanx04/components` depends only on `@zyanx04/themes`.
+- `@zyanx04/renderer` depends on `@zyanx04/components`, `@zyanx04/core`, `@zyanx04/protocol`, and `@zyanx04/themes`.
+- `@zyanx04/adapters` depends on `@zyanx04/protocol`.
 - `apps/cli` orchestrates all packages.
 - Never introduce circular imports between packages.
 

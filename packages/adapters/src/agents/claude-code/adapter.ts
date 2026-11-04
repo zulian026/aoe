@@ -1,4 +1,4 @@
-import { type AoeEvent, type ProtocolEnvelope } from '@aoe/protocol';
+import { type AoeEvent, type ProtocolEnvelope } from '@zyanx04/protocol';
 import type {
   AgentAdapter,
   AgentKind,

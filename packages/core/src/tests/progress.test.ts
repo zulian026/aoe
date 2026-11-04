@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Engine } from '../index.js';
-import { createEvent } from '@aoe/protocol';
+import { createEvent } from '@zyanx04/protocol';
 
 describe('Engine Progress Tracking', () => {
   it('tracks progress metrics on tasks and aggregates session completion', () => {

@@ -1,5 +1,5 @@
 import { Writable } from 'node:stream';
-import type { SessionSnapshot } from '@aoe/core';
+import type { SessionSnapshot } from '@zyanx04/core';
 
 export class MockTerminalStream extends Writable {
   public output = '';

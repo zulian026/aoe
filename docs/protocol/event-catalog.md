@@ -1,6 +1,6 @@
 # AOE Universal Event Protocol — Event Catalog
 
-This catalog details the twelve canonical events supported by the AOE Universal Event Protocol (`v1.0.0`). Every event is validated via Zod schemas in `@aoe/protocol`.
+This catalog details the twelve canonical events supported by the AOE Universal Event Protocol (`v1.0.0`). Every event is validated via Zod schemas in `@zyanx04/protocol`.
 
 ---
 

@@ -3,7 +3,7 @@ import { Readable } from 'node:stream';
 import { readStreamChunks } from '../runtime/stdin-reader.js';
 import { SignalHandler } from '../runtime/signal-handler.js';
 import { ExecutionPipeline } from '../runtime/execution-pipeline.js';
-import type { SessionStartedEvent } from '@aoe/protocol';
+import type { SessionStartedEvent } from '@zyanx04/protocol';
 
 describe('CLI Runtime & Lifecycle', () => {
   describe('readStreamChunks', () => {

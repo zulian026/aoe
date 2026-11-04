@@ -1,13 +1,14 @@
 import { Command } from 'commander';
 import fs from 'node:fs';
-import { PROTOCOL_VERSION } from '@aoe/protocol';
-import { defaultRegistry } from '@aoe/themes';
-import { createDefaultAdapterManager } from '@aoe/adapters';
-import { isInteractiveSuitable, isNoColor, supportsColor } from '@aoe/renderer';
+import { PROTOCOL_VERSION } from '@zyanx04/protocol';
+import { defaultRegistry } from '@zyanx04/themes';
+import { createDefaultAdapterManager } from '@zyanx04/adapters';
+import { isInteractiveSuitable, isNoColor, supportsColor } from '@zyanx04/renderer';
 import { loadConfig, getConfigFilePath } from '../config/index.js';
 import { resolveSkillPath } from '../utils/skill-path.js';
 import { ExitCode } from '../runtime/exit-codes.js';
 import { CliError } from '../utils/errors.js';
+import { CLI_VERSION } from '../program.js';
 
 export interface DoctorCheckItem {
   name: string;
@@ -67,7 +68,7 @@ export async function executeDoctor(optionsOrSkillPath?: string | DoctorOptions)
   }
 
   runtimeChecks.push({
-    name: `CLI Version (v0.1.0, Protocol v${PROTOCOL_VERSION})`,
+    name: `CLI Version (v${CLI_VERSION}, Protocol v${PROTOCOL_VERSION})`,
     status: 'pass',
   });
   categories.push({ title: 'Runtime', checks: runtimeChecks });

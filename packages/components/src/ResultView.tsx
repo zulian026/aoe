@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import type { AoeTheme } from '@aoe/themes';
+import type { AoeTheme } from '@zyanx04/themes';
 import { resolveThemeColor, getSymbol } from './utils/theme-resolver.js';
 import { useTheme } from './theme-context.js';
 

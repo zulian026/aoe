@@ -2,7 +2,7 @@
 
 ## 1. Overview & Vision
 
-The AOE Theme Engine (`@aoe/themes`) is a centralized, extensible semantic styling system for terminal user interfaces in AOE (Agent Output Enhancement).
+The AOE Theme Engine (`@zyanx04/themes`) is a centralized, extensible semantic styling system for terminal user interfaces in AOE (Agent Output Enhancement).
 
 Its purpose is to:
 
@@ -13,12 +13,12 @@ Its purpose is to:
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│                       @aoe/themes                           │
+│                       @zyanx04/themes                           │
 │   Contracts & Zod Schemas │ ThemeRegistry │ Resolver Engine │
 └──────────────┬───────────────────────────────┬──────────────┘
                │                               │
                ▼                               ▼
-       @aoe/components                  @aoe/renderer
+       @zyanx04/components                  @zyanx04/renderer
    (ThemeProvider, useTheme)        (Runtime Theme Switching)
                │                               │
                └───────────────┬───────────────┘
@@ -30,9 +30,9 @@ Its purpose is to:
 
 ## 2. Package Boundaries & Dependencies
 
-`@aoe/themes` is positioned at the foundational layer of the presentation stack:
+`@zyanx04/themes` is positioned at the foundational layer of the presentation stack:
 
-- **Zero dependencies on presentation packages**: `@aoe/themes` never imports from `@aoe/components`, `@aoe/renderer`, or `@aoe/core`.
+- **Zero dependencies on presentation packages**: `@zyanx04/themes` never imports from `@zyanx04/components`, `@zyanx04/renderer`, or `@zyanx04/core`.
 - **Pure data & contracts**: Themes are serializable, schema-validated data structures. No arbitrary executable functions are allowed within theme definitions.
 - **Deep immutability**: All registered themes are deep-frozen via `deepFreeze()` upon validation to prevent accidental runtime mutations.
 
@@ -148,13 +148,13 @@ The resolver mediates between theoretical theme tokens and actual terminal capab
 
 ## 7. Component & Renderer Integration
 
-### Component Integration (`@aoe/components`)
+### Component Integration (`@zyanx04/components`)
 
 - `ThemeProvider`: Top-level React context provider supplying the active `AoeTheme`.
 - `useTheme(explicitTheme?)`: Hook returning active theme from context, falling back to `OBSIDIAN_THEME`.
 - All 9 components (`StatusIndicator`, `ProgressBar`, `Panel`, `TaskSummary`, `FileChangeView`, `DiagnosticsPanel`, `ExecutionLog`, `ResultView`, `Table`) consume tokens via `useTheme()` and support explicit `theme` prop override.
 
-### Renderer Integration (`@aoe/renderer`)
+### Renderer Integration (`@zyanx04/renderer`)
 
 - `TerminalRendererOptions.theme` accepts either a theme ID string (`'obsidian' | 'light' | 'high-contrast'`) or an `AoeTheme` object.
 - `renderer.setTheme(newTheme)` allows switching themes dynamically at runtime.

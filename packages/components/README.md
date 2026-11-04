@@ -1,10 +1,10 @@
-# @aoe/components
+# @zyanx04/components
 
 Reusable React and Ink terminal UI components for AOE (Agent Output Enhancement).
 
 ## Overview
 
-`@aoe/components` contains the presentation building blocks used by `@aoe/renderer` and interactive terminal applications. Built on Ink 8 and React 19, these components handle layout, text wrapping, secret masking, and terminal sanitization.
+`@zyanx04/components` contains the presentation building blocks used by `@zyanx04/renderer` and interactive terminal applications. Built on Ink 8 and React 19, these components handle layout, text wrapping, secret masking, and terminal sanitization.
 
 ## Components
 
@@ -20,7 +20,7 @@ Reusable React and Ink terminal UI components for AOE (Agent Output Enhancement)
 
 ## Built-in Security
 
-Every text string rendered by `@aoe/components` automatically undergoes:
+Every text string rendered by `@zyanx04/components` automatically undergoes:
 
 - **Terminal Escape Sanitization** (`sanitizeTerminalText`): Strips dangerous OSC sequences, cursor repositioning escapes, unprintable ASCII bytes, and Trojan Source Unicode BiDi overrides.
 - **Secret Masking** (`maskSecrets`): Redacts API keys, Bearer tokens, GitHub credentials, AWS access keys, and private keys.
@@ -28,9 +28,9 @@ Every text string rendered by `@aoe/components` automatically undergoes:
 ## Installation
 
 ```bash
-npm install @aoe/components @aoe/themes react ink
+npm install @zyanx04/components @zyanx04/themes react ink
 # or
-pnpm add @aoe/components @aoe/themes react ink
+pnpm add @zyanx04/components @zyanx04/themes react ink
 ```
 
 ## Quick Start
@@ -38,8 +38,8 @@ pnpm add @aoe/components @aoe/themes react ink
 ```tsx
 import React from 'react';
 import { render } from 'ink';
-import { ProgressBar, StatusIndicator, TaskSummary, ThemeProvider } from '@aoe/components';
-import { OBSIDIAN_THEME } from '@aoe/themes';
+import { ProgressBar, StatusIndicator, TaskSummary, ThemeProvider } from '@zyanx04/components';
+import { OBSIDIAN_THEME } from '@zyanx04/themes';
 
 const App = () => (
   <ThemeProvider theme={OBSIDIAN_THEME}>

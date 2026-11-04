@@ -1,4 +1,4 @@
-import type { AoeEvent, AoeEventType } from '@aoe/protocol';
+import type { AoeEvent, AoeEventType } from '@zyanx04/protocol';
 
 export interface EventQueryOptions {
   limit?: number;
