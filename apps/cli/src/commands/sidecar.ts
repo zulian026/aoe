@@ -4,14 +4,22 @@ import os from 'node:os';
 import type { Command } from 'commander';
 import { SidecarConsumer } from '@zyanx04/core';
 import { resolveSocketPath } from '@zyanx04/adapters';
+import {
+  SidecarTerminalRenderer,
+  renderToStringSidecarApp,
+  isInteractiveSuitable,
+} from '@zyanx04/renderer';
 import { ExitCode } from '../runtime/exit-codes.js';
+import { loadConfig } from '../config/index.js';
 
 export interface SidecarCommandOptions {
   socket?: string;
   session?: string;
   dir?: string;
+  theme?: string;
   once?: boolean;
   json?: boolean;
+  static?: boolean;
 }
 
 /**
@@ -64,112 +72,196 @@ export function discoverActiveSocket(customDir?: string): string | null {
 export function registerSidecarCommand(program: Command): void {
   program
     .command('sidecar')
-    .description('Attach an independent terminal sidecar consumer to an active AOE session')
+    .description('Attach an independent terminal sidecar presentation layer to an active AOE session')
     .option('-s, --socket <path>', 'Explicit Unix Domain Socket path for IPC')
     .option('--session <id>', 'Attach to session by conversation ID')
     .option('--dir <path>', 'Custom directory to search for session sockets')
+    .option('-t, --theme <name>', 'Theme identifier for terminal presentation')
     .option('--once', 'Connect, snapshot current state, and exit cleanly')
     .option('--json', 'Format output snapshot as JSON')
+    .option('--static', 'Render static non-interactive view without TTY loop')
     .action(async (options: SidecarCommandOptions) => {
-      let socketPath: string | null = null;
+      await executeSidecar(options);
+    });
+}
 
-      if (options.socket) {
-        socketPath = path.resolve(options.socket);
-      } else if (options.session) {
-        socketPath = resolveSocketPath(options.session);
-      } else {
-        socketPath = discoverActiveSocket(options.dir);
-      }
+export async function executeSidecar(
+  options: SidecarCommandOptions = {},
+  customStdout: NodeJS.WriteStream = process.stdout,
+  customStdin?: NodeJS.ReadStream,
+): Promise<number> {
+  const { config } = loadConfig();
+  const theme = options.theme ?? config.theme ?? 'obsidian';
 
-      if (!socketPath || (!fs.existsSync(socketPath) && !options.socket)) {
-        if (options.json) {
-          process.stdout.write(
-            JSON.stringify({ status: 'no_session', message: 'No active session found' }) + '\n',
-          );
-        } else {
-          process.stdout.write('[AOE Sidecar] No active agent session found.\n');
-          process.stdout.write(
-            'No active socket detected. Start an AI agent session with AOE enabled, or specify --socket <path>.\n',
-          );
-        }
-        process.exitCode = ExitCode.SUCCESS;
-        return;
-      }
+  let socketPath: string | null = null;
 
-      const consumer = new SidecarConsumer({
-        socketPath,
-        autoReconnect: !options.once,
-        connectTimeoutMs: 2500,
-      });
+  if (options.socket) {
+    socketPath = path.resolve(options.socket);
+  } else if (options.session) {
+    socketPath = resolveSocketPath(options.session);
+  } else {
+    socketPath = discoverActiveSocket(options.dir);
+  }
 
-      let isCleanedUp = false;
-      const cleanup = async () => {
-        if (isCleanedUp) return;
-        isCleanedUp = true;
+  if (!socketPath || (!fs.existsSync(socketPath) && !options.socket)) {
+    if (options.json) {
+      customStdout.write(
+        JSON.stringify({ status: 'no_session', message: 'No active session found' }) + '\n',
+      );
+    } else {
+      customStdout.write('[AOE Sidecar] No active agent session found.\n');
+      customStdout.write(
+        'No active socket detected. Start an AI agent session with AOE enabled, or specify --socket <path>.\n',
+      );
+    }
+    return ExitCode.SUCCESS;
+  }
+
+  const isInteractive =
+    !options.json &&
+    !options.once &&
+    !options.static &&
+    isInteractiveSuitable(customStdout);
+
+  const consumer = new SidecarConsumer({
+    socketPath,
+    autoReconnect: !options.once && isInteractive,
+    connectTimeoutMs: 2500,
+  });
+
+  // Handle --once mode
+  if (options.once) {
+    return new Promise<number>((resolve) => {
+      let resolved = false;
+      const finish = async () => {
+        if (resolved) return;
+        resolved = true;
         try {
           await consumer.stop();
         } catch {}
-        if (!options.json) {
-          process.stdout.write('\n[AOE Sidecar] Disconnected from session.\n');
-        }
-        process.exit(ExitCode.SUCCESS);
+        resolve(ExitCode.SUCCESS);
       };
 
-      process.on('SIGINT', () => {
-        cleanup().catch(() => process.exit(0));
-      });
-      process.on('SIGTERM', () => {
-        cleanup().catch(() => process.exit(0));
-      });
-
-      if (!options.json) {
-        process.stdout.write(`[AOE Sidecar] Connecting to socket: ${socketPath}\n`);
-      }
-
-      consumer.on('connect', () => {
-        if (!options.json) {
-          process.stdout.write('[AOE Sidecar] Connected to active session.\n');
-          process.stdout.write('[AOE Sidecar] Monitoring event stream (Ctrl+C to detach)...\n');
-        }
-      });
-
-      consumer.on('event', (event) => {
-        if (options.once) {
+      let debounceTimer: NodeJS.Timeout | null = null;
+      const triggerOutput = () => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          if (resolved) return;
           if (options.json) {
-            process.stdout.write(JSON.stringify(consumer.getSnapshot(), null, 2) + '\n');
+            customStdout.write(JSON.stringify(consumer.getSnapshot(), null, 2) + '\n');
           } else {
-            process.stdout.write(`[Snapshot] Last event: ${event.eventType} (seq ${event.sequence})\n`);
+            const rendered = renderToStringSidecarApp({
+              snapshot: consumer.getSnapshot(),
+              connectionStatus: consumer.getStatus(),
+              theme,
+              width: customStdout.columns ?? 80,
+            });
+            customStdout.write(rendered + '\n');
           }
-          cleanup().catch(() => process.exit(0));
-          return;
-        }
+          finish().catch(() => resolve(ExitCode.SUCCESS));
+        }, 50);
+      };
 
-        if (!options.json) {
-          process.stdout.write(
-            `[Event] ${event.eventType.padEnd(16)} (seq: ${String(event.sequence).padStart(3)}) | task: ${
-              (event.payload as { taskId?: string }).taskId ?? '-'
-            }\n`,
-          );
-        }
-      });
+      consumer.on('event', triggerOutput);
 
-      consumer.on('diagnostic', (diag) => {
-        if (!options.json && diag.level !== 'info') {
-          process.stderr.write(`[Sidecar ${diag.level.toUpperCase()}] ${diag.message}\n`);
-        }
-      });
-
-      try {
-        await consumer.start();
-      } catch (err) {
+      consumer.start().catch((err) => {
         if (options.json) {
-          process.stdout.write(
+          customStdout.write(
             JSON.stringify({ status: 'error', error: (err as Error).message }) + '\n',
           );
         } else {
-          process.stderr.write(`[AOE Sidecar] Connection error: ${(err as Error).message}\n`);
+          customStdout.write(`[AOE Sidecar] Connection error: ${(err as Error).message}\n`);
         }
-        process.exitCode = ExitCode.SUCCESS;
+        finish().catch(() => resolve(ExitCode.SUCCESS));
+      });
+
+      // Fallback timeout for --once if socket emits no immediate event
+      setTimeout(() => {
+        if (!resolved) {
+          triggerOutput();
+        }
+      }, 350);
+    });
+  }
+
+  // Interactive TTY mode: Start live Ink presentation
+  if (isInteractive) {
+    const renderer = new SidecarTerminalRenderer({
+      consumer,
+      theme,
+      stdout: customStdout,
+      stdin: customStdin,
+      onExit: () => {
+        customStdout.write('\n[AOE Sidecar] Detached cleanly from session.\n');
+      },
+    });
+
+    try {
+      await renderer.start();
+    } catch (err) {
+      customStdout.write(`[AOE Sidecar] Failed to start sidecar: ${(err as Error).message}\n`);
+      return ExitCode.SUCCESS;
+    }
+
+    return ExitCode.SUCCESS;
+  }
+
+  // Non-Interactive / Non-TTY stream fallback
+  return new Promise<number>((resolve) => {
+    let isCleanedUp = false;
+    const cleanup = async () => {
+      if (isCleanedUp) return;
+      isCleanedUp = true;
+      try {
+        await consumer.stop();
+      } catch {}
+      if (!options.json) {
+        customStdout.write('\n[AOE Sidecar] Disconnected from session.\n');
+      }
+      resolve(ExitCode.SUCCESS);
+    };
+
+    process.on('SIGINT', () => cleanup());
+    process.on('SIGTERM', () => cleanup());
+
+    if (!options.json) {
+      customStdout.write(`[AOE Sidecar] Connecting to socket: ${socketPath}\n`);
+    }
+
+    consumer.on('connect', () => {
+      if (!options.json) {
+        customStdout.write('[AOE Sidecar] Connected to active session.\n');
+        customStdout.write('[AOE Sidecar] Monitoring event stream...\n');
       }
     });
+
+    consumer.on('event', (event) => {
+      if (options.json) {
+        customStdout.write(JSON.stringify(event) + '\n');
+      } else {
+        customStdout.write(
+          `[Event] ${event.eventType.padEnd(16)} (seq: ${String(event.sequence).padStart(3)}) | task: ${
+            (event.payload as { taskId?: string }).taskId ?? '-'
+          }\n`,
+        );
+      }
+    });
+
+    consumer.on('diagnostic', (diag) => {
+      if (!options.json && diag.level !== 'info') {
+        process.stderr.write(`[Sidecar ${diag.level.toUpperCase()}] ${diag.message}\n`);
+      }
+    });
+
+    consumer.start().catch((err) => {
+      if (options.json) {
+        customStdout.write(
+          JSON.stringify({ status: 'error', error: (err as Error).message }) + '\n',
+        );
+      } else {
+        process.stderr.write(`[AOE Sidecar] Connection error: ${(err as Error).message}\n`);
+      }
+      cleanup();
+    });
+  });
 }

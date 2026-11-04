@@ -62,13 +62,109 @@ describe('aoe sidecar CLI command', () => {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   });
 
-  it('connects to active socket with --once and outputs snapshot', async () => {
-    const sockPath = path.join(tmpDir, 'aoe-test-once.sock');
+  it('connects to active socket with --once --json and outputs machine-readable JSON snapshot', async () => {
+    const sockPath = path.join(tmpDir, 'aoe-test-once-json.sock');
     let clientConn: net.Socket | null = null;
     const server = net.createServer((conn) => {
       clientConn = conn;
       const e0 = createEvent('session.started', {
-        sessionId: 'sess_once_test',
+        sessionId: 'sess_once_json',
+        sequence: 0,
+        payload: {
+          agent: { name: 'antigravity' },
+          workingDirectory: '/dir',
+        },
+      });
+      conn.write(JSON.stringify(e0) + '\n');
+    });
+
+    await new Promise<void>((resolve) => server.listen(sockPath, () => resolve()));
+
+    let captured = '';
+    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation((chunk) => {
+      captured += chunk.toString();
+      return true;
+    });
+
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+
+    await runCli(['node', 'aoe', 'sidecar', '--socket', sockPath, '--once', '--json']);
+
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    stdoutSpy.mockRestore();
+    exitSpy.mockRestore();
+
+    if (clientConn) {
+      try {
+        (clientConn as net.Socket).destroy();
+      } catch {}
+    }
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+
+    expect(captured).toContain('sess_once_json');
+    const parsed = JSON.parse(captured.trim());
+    expect(parsed.sessionId).toBe('sess_once_json');
+    expect(parsed.status).toBe('active');
+  });
+
+  it('connects to active socket with --once and outputs formatted terminal UI presentation', async () => {
+    const sockPath = path.join(tmpDir, 'aoe-test-once-formatted.sock');
+    let clientConn: net.Socket | null = null;
+    const server = net.createServer((conn) => {
+      clientConn = conn;
+      const e0 = createEvent('session.started', {
+        sessionId: 'sess_once_formatted',
+        sequence: 0,
+        payload: {
+          agent: { name: 'antigravity', version: '1.5.0' },
+          workingDirectory: '/home/user/project',
+        },
+      });
+      const e1 = createEvent('task.started', {
+        sessionId: 'sess_once_formatted',
+        sequence: 1,
+        payload: { taskId: 't1', taskName: 'Analyze Project' },
+      });
+      conn.write(JSON.stringify(e0) + '\n' + JSON.stringify(e1) + '\n');
+    });
+
+    await new Promise<void>((resolve) => server.listen(sockPath, () => resolve()));
+
+    let captured = '';
+    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation((chunk) => {
+      captured += chunk.toString();
+      return true;
+    });
+
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+
+    await runCli(['node', 'aoe', 'sidecar', '--socket', sockPath, '--once']);
+
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    stdoutSpy.mockRestore();
+    exitSpy.mockRestore();
+
+    if (clientConn) {
+      try {
+        (clientConn as net.Socket).destroy();
+      } catch {}
+    }
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+
+    expect(captured).toContain('AOE SIDECAR');
+    expect(captured).toContain('Analyze Project');
+    expect(captured).toContain('antigravity');
+  });
+
+  it('handles non-TTY / --static stream output without crashing', async () => {
+    const sockPath = path.join(tmpDir, 'aoe-test-static.sock');
+    let clientConn: net.Socket | null = null;
+    const server = net.createServer((conn) => {
+      clientConn = conn;
+      const e0 = createEvent('session.started', {
+        sessionId: 'sess_stream_test',
         sequence: 0,
         payload: { agent: { name: 'antigravity' }, workingDirectory: '/dir' },
       });
@@ -83,16 +179,14 @@ describe('aoe sidecar CLI command', () => {
       return true;
     });
 
-    // Mock process.exit so command can exit cleanly
+    // Run with --static and mock exit
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 
-    await runCli(['node', 'aoe', 'sidecar', '--socket', sockPath, '--once', '--json']);
+    void runCli(['node', 'aoe', 'sidecar', '--socket', sockPath, '--static']);
 
     await new Promise((resolve) => setTimeout(resolve, 80));
 
-    stdoutSpy.mockRestore();
-    exitSpy.mockRestore();
-
+    // Cleanup server and connection
     if (clientConn) {
       try {
         (clientConn as net.Socket).destroy();
@@ -100,9 +194,9 @@ describe('aoe sidecar CLI command', () => {
     }
     await new Promise<void>((resolve) => server.close(() => resolve()));
 
-    expect(captured).toContain('sess_once_test');
-    const parsed = JSON.parse(captured.trim());
-    expect(parsed.sessionId).toBe('sess_once_test');
-    expect(parsed.status).toBe('active');
+    stdoutSpy.mockRestore();
+    exitSpy.mockRestore();
+
+    expect(captured).toContain('Connecting to socket:');
   });
 });
