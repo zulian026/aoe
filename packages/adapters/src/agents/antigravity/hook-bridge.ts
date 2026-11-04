@@ -1,5 +1,7 @@
 import { AntigravityAdapter } from './adapter.js';
 import { UnixSocketIpcClient, resolveSocketPath, type IpcClient } from './ipc-transport.js';
+import { AntigravitySessionStore } from './state-store.js';
+import { ALLOWED_HOOK_EVENTS, type AntigravityHookEventName } from './mapper.js';
 import type { AdapterSession } from '../../contracts/session.js';
 import { createAdapterSession } from '../../contracts/session.js';
 
@@ -13,6 +15,7 @@ export interface HookBridgeOptions {
   adapter?: AntigravityAdapter;
   session?: AdapterSession;
   ipcClient?: IpcClient;
+  store?: AntigravitySessionStore;
 }
 
 export interface HookBridgeResult {
@@ -22,6 +25,7 @@ export interface HookBridgeResult {
   forwarded: boolean;
   response: Record<string, unknown>;
   durationMs: number;
+  error?: string;
 }
 
 /**
@@ -53,38 +57,55 @@ async function readStdin(stream: NodeJS.ReadableStream, timeoutMs: number): Prom
     let data = '';
     let settled = false;
 
+    const cleanup = () => {
+      stream.removeListener('data', onData);
+      stream.removeListener('end', onEnd);
+      stream.removeListener('error', onError);
+    };
+
     const timer = setTimeout(() => {
       if (!settled) {
         settled = true;
+        cleanup();
         resolve(data.trim());
       }
     }, timeoutMs);
 
-    stream.setEncoding('utf-8');
-    stream.on('data', (chunk) => {
-      data += chunk;
-    });
+    const onData = (chunk: Buffer | string) => {
+      data += chunk.toString();
+    };
 
-    stream.on('end', () => {
+    const onEnd = () => {
       if (!settled) {
         settled = true;
         clearTimeout(timer);
+        cleanup();
         resolve(data.trim());
       }
-    });
+    };
 
-    stream.on('error', () => {
+    const onError = () => {
       if (!settled) {
         settled = true;
         clearTimeout(timer);
+        cleanup();
         resolve(data.trim());
       }
-    });
+    };
+
+    stream.on('data', onData);
+    stream.on('end', onEnd);
+    stream.on('error', onError);
+
+    // Resume stream if paused
+    if (typeof (stream as { resume?: () => void }).resume === 'function') {
+      (stream as { resume: () => void }).resume();
+    }
   });
 }
 
 /**
- * Executes the non-blocking Antigravity hook bridge.
+ * Executes the stateful non-blocking Antigravity hook bridge.
  */
 export async function runHookBridge(options: HookBridgeOptions = {}): Promise<HookBridgeResult> {
   const start = Date.now();
@@ -98,6 +119,7 @@ export async function runHookBridge(options: HookBridgeOptions = {}): Promise<Ho
   let parsedPayload: Record<string, unknown> = {};
   let normalizedCount = 0;
   let forwarded = false;
+  let bridgeError: string | undefined;
 
   try {
     const rawInput = await readStdin(stdinStream, timeoutMs);
@@ -106,11 +128,8 @@ export async function runHookBridge(options: HookBridgeOptions = {}): Promise<Ho
       try {
         parsedPayload = JSON.parse(rawInput) as Record<string, unknown>;
       } catch (parseErr) {
-        if (process.env.DEBUG_AOE) {
-          stderrStream.write(
-            `[aoe-bridge] Warning: Malformed JSON input: ${(parseErr as Error).message}\n`,
-          );
-        }
+        bridgeError = `Malformed JSON input: ${(parseErr as Error).message}`;
+        stderrStream.write(`[aoe-bridge] Warning: ${bridgeError}\n`);
       }
     }
 
@@ -119,23 +138,28 @@ export async function runHookBridge(options: HookBridgeOptions = {}): Promise<Ho
         rawEventName = parsedPayload.hookEventName;
       } else if (typeof parsedPayload.hook_event_name === 'string') {
         rawEventName = parsedPayload.hook_event_name;
-      } else if ('terminationReason' in parsedPayload || 'termination_reason' in parsedPayload) {
-        rawEventName = 'Stop';
-      } else if ('toolCall' in parsedPayload || 'tool_call' in parsedPayload) {
-        rawEventName = 'error' in parsedPayload ? 'PostToolUse' : 'PreToolUse';
-      } else if ('invocationNum' in parsedPayload || 'invocation_num' in parsedPayload) {
-        rawEventName = 'PreInvocation';
-      } else {
-        rawEventName = 'SessionStart';
       }
+    }
+
+    // Phase 3: Validate event explicitly
+    if (!rawEventName) {
+      bridgeError =
+        'Missing explicit hook event name. Please specify --event <SessionStart|PreInvocation|PreToolUse|PostToolUse|Stop>.';
+      stderrStream.write(`[aoe-bridge] Error: ${bridgeError}\n`);
+    } else if (!ALLOWED_HOOK_EVENTS.includes(rawEventName as AntigravityHookEventName)) {
+      bridgeError = `Unknown hook event "${rawEventName}". Allowed: ${ALLOWED_HOOK_EVENTS.join(', ')}`;
+      stderrStream.write(`[aoe-bridge] Error: ${bridgeError}\n`);
     }
 
     const conversationId = String(
       parsedPayload.conversationId ??
         parsedPayload.conversation_id ??
         options.session?.id ??
-        'antigravity-session',
+        'default',
     );
+
+    // Phase 1: Stateful Session Authority
+    const store = options.store ?? new AntigravitySessionStore(conversationId);
 
     const session =
       options.session ??
@@ -146,31 +170,30 @@ export async function runHookBridge(options: HookBridgeOptions = {}): Promise<Ho
         workingDirectory:
           ((parsedPayload.workspacePaths ?? parsedPayload.workspace_paths) as string[])?.[0] ??
           process.cwd(),
+        metadata: { sessionStore: store },
       });
 
-    // Normalize events
-    const normalizedEvents = adapter.normalize(parsedPayload, session, rawEventName);
-    normalizedCount = normalizedEvents.length;
+    // Normalize events if event name is valid
+    if (rawEventName && ALLOWED_HOOK_EVENTS.includes(rawEventName as AntigravityHookEventName)) {
+      const normalizedEvents = adapter.normalize(parsedPayload, session, rawEventName, store);
+      normalizedCount = normalizedEvents.length;
 
-    // Forward to IPC transport safely without blocking
-    if (normalizedCount > 0) {
-      const socketPath = options.socketPath ?? resolveSocketPath(conversationId);
-      const ipcClient = options.ipcClient ?? new UnixSocketIpcClient(socketPath, 150);
-      try {
-        forwarded = await ipcClient.send(normalizedEvents);
-      } catch {
-        // Non-blocking fallback if transport fails
-        forwarded = false;
-      } finally {
-        await ipcClient.close().catch(() => {});
+      // Forward to IPC transport safely without blocking
+      if (normalizedCount > 0) {
+        const socketPath = options.socketPath ?? resolveSocketPath(conversationId);
+        const ipcClient = options.ipcClient ?? new UnixSocketIpcClient(socketPath, 150);
+        try {
+          forwarded = await ipcClient.send(normalizedEvents);
+        } catch {
+          forwarded = false;
+        } finally {
+          await ipcClient.close().catch(() => {});
+        }
       }
     }
   } catch (err) {
-    if (process.env.DEBUG_AOE) {
-      stderrStream.write(
-        `[aoe-bridge] Error during hook bridge processing: ${(err as Error).message}\n`,
-      );
-    }
+    bridgeError = (err as Error).message;
+    stderrStream.write(`[aoe-bridge] Error during hook bridge processing: ${bridgeError}\n`);
   }
 
   const effectiveEvent = rawEventName ?? 'unknown';
@@ -178,14 +201,19 @@ export async function runHookBridge(options: HookBridgeOptions = {}): Promise<Ho
 
   // Return the documented Antigravity hook response on stdout without contamination
   const responseJson = JSON.stringify(response);
-  stdoutStream.write(`${responseJson}\n`);
+  await new Promise<void>((resolve) => {
+    stdoutStream.write(`${responseJson}\n`, 'utf-8', () => {
+      resolve();
+    });
+  });
 
   return {
-    success: true,
+    success: bridgeError === undefined,
     event: effectiveEvent,
     normalizedCount,
     forwarded,
     response,
     durationMs: Date.now() - start,
+    error: bridgeError,
   };
 }

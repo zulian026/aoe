@@ -2,27 +2,49 @@ import net from 'node:net';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import type { AoeEvent } from '@zyanx04/protocol';
+import { sanitizeSessionId } from './state-store.js';
 
 export interface IpcClient {
   send(events: AoeEvent[]): Promise<boolean>;
   close(): Promise<void>;
 }
 
+/**
+ * Resolves a secure, platform-portable socket path with strict byte-length bounds.
+ */
 export function resolveSocketPath(sessionId?: string): string {
   const custom = process.env.AOE_SOCKET_PATH;
-  if (custom) return custom;
-
-  const normalizedId = (sessionId ?? 'default').replace(/[^a-zA-Z0-9_-]/g, '_');
-
-  if (process.platform === 'win32') {
-    return `\\\\.\\pipe\\aoe-${normalizedId}`;
+  if (custom && custom.trim().length > 0) {
+    return custom.trim();
   }
 
-  const baseDir =
-    process.env.XDG_RUNTIME_DIR ||
-    (fs.existsSync('/tmp') ? '/tmp' : os.tmpdir());
-  return path.join(baseDir, `aoe-${normalizedId}.sock`);
+  const safeId = sanitizeSessionId(sessionId);
+
+  if (process.platform === 'win32') {
+    return `\\\\.\\pipe\\aoe-${safeId}`;
+  }
+
+  const preferredDir =
+    process.env.XDG_RUNTIME_DIR && fs.existsSync(process.env.XDG_RUNTIME_DIR)
+      ? process.env.XDG_RUNTIME_DIR
+      : fs.existsSync('/tmp')
+        ? '/tmp'
+        : os.tmpdir();
+
+  const candidatePath = path.join(preferredDir, `aoe-${safeId}.sock`);
+
+  // Maximum UNIX domain socket length: 104 bytes on macOS/BSD, 108 bytes on Linux.
+  // We enforce a conservative 96-byte ceiling.
+  if (Buffer.byteLength(candidatePath, 'utf-8') > 96) {
+    const hash = crypto.createHash('sha256').update(safeId).digest('hex').slice(0, 16);
+    const shortName = `aoe-${hash}.sock`;
+    const fallbackDir = fs.existsSync('/tmp') ? '/tmp' : os.tmpdir();
+    return path.join(fallbackDir, shortName);
+  }
+
+  return candidatePath;
 }
 
 export class UnixSocketIpcClient implements IpcClient {

@@ -16,67 +16,128 @@ import {
 } from '@zyanx04/protocol';
 import type { AdapterSession } from '../../contracts/session.js';
 import { sanitizeAgentText, sanitizePayload } from '../../utils/sanitizer.js';
+import { AdapterParsingError } from '../../errors/index.js';
+import { evaluateVerificationEvidence, type VerificationEvidence } from './evidence.js';
+import type { AntigravitySessionStore } from './state-store.js';
+
+export const ALLOWED_HOOK_EVENTS = [
+  'SessionStart',
+  'PreInvocation',
+  'PreToolUse',
+  'PostToolUse',
+  'Stop',
+] as const;
+
+export type AntigravityHookEventName = (typeof ALLOWED_HOOK_EVENTS)[number];
 
 export class AntigravityMapper {
   /**
    * Translates an Antigravity hook payload into one or more canonical AOE protocol events.
    */
-  public mapEvent(raw: unknown, session: AdapterSession, explicitEvent?: string): AoeEvent[] {
+  public mapEvent(
+    raw: unknown,
+    session: AdapterSession,
+    explicitEvent?: string,
+    store?: AntigravitySessionStore,
+  ): AoeEvent[] {
     if (!raw || typeof raw !== 'object') {
       return [];
     }
 
     const rec = raw as Record<string, unknown>;
+    const effectiveStore =
+      store ?? (session.metadata['sessionStore'] as AntigravitySessionStore | undefined);
+
     const eventName = this.resolveEventName(rec, explicitEvent);
+
+    // Explicit deduplication check if state store is available
+    const signature = this.computeEventSignature(eventName, rec);
+    if (signature && effectiveStore?.checkAndRecordSignatureSync(signature)) {
+      return []; // Duplicate event within the same session
+    }
 
     switch (eventName) {
       case 'SessionStart':
-        return this.mapSessionStart(rec, session);
+        return this.mapSessionStart(rec, session, effectiveStore);
       case 'PreInvocation':
-        return this.mapPreInvocation(rec, session);
+        return this.mapPreInvocation(rec, session, effectiveStore);
       case 'PreToolUse':
-        return this.mapPreToolUse(rec, session);
+        return this.mapPreToolUse(rec, session, effectiveStore);
       case 'PostToolUse':
-        return this.mapPostToolUse(rec, session);
+        return this.mapPostToolUse(rec, session, effectiveStore);
       case 'Stop':
-        return this.mapStop(rec, session);
+        return this.mapStop(rec, session, effectiveStore);
       default:
         return [];
     }
   }
 
-  private resolveEventName(rec: Record<string, unknown>, explicit?: string): string {
-    if (explicit) {
-      return explicit;
-    }
-    if (typeof rec.hookEventName === 'string') {
-      return rec.hookEventName;
-    }
-    if (typeof rec.hook_event_name === 'string') {
-      return rec.hook_event_name;
-    }
+  /**
+   * Resolves and strictly validates the hook event name.
+   * Requires explicit declaration via parameter or hookEventName property.
+   * Rejects ambiguous or unknown events with a controlled error.
+   */
+  public resolveEventName(rec: Record<string, unknown>, explicit?: string): AntigravityHookEventName {
+    const candidate =
+      explicit ??
+      (typeof rec.hookEventName === 'string'
+        ? rec.hookEventName
+        : typeof rec.hook_event_name === 'string'
+          ? rec.hook_event_name
+          : undefined);
 
-    // Heuristic inference based on payload shape
-    if ('terminationReason' in rec || 'termination_reason' in rec) {
-      return 'Stop';
-    }
-    if ('toolCall' in rec || 'tool_call' in rec) {
-      if ('error' in rec) {
-        return 'PostToolUse';
+    if (candidate) {
+      if (!ALLOWED_HOOK_EVENTS.includes(candidate as AntigravityHookEventName)) {
+        throw new AdapterParsingError(
+          `Unknown Antigravity hook event "${candidate}". Allowed events: ${ALLOWED_HOOK_EVENTS.join(', ')}`,
+          { rawInput: JSON.stringify(rec) },
+        );
       }
-      return 'PreToolUse';
-    }
-    if ('invocationNum' in rec || 'invocation_num' in rec) {
-      return 'PreInvocation';
-    }
-    if ('conversationId' in rec || 'conversation_id' in rec) {
-      return 'SessionStart';
+      return candidate as AntigravityHookEventName;
     }
 
-    return 'unknown';
+    throw new AdapterParsingError(
+      'Missing explicit hook event name. Please specify --event <SessionStart|PreInvocation|PreToolUse|PostToolUse|Stop>.',
+      { rawInput: JSON.stringify(rec) },
+    );
   }
 
-  private mapSessionStart(rec: Record<string, unknown>, session: AdapterSession): AoeEvent[] {
+  private allocateSequence(session: AdapterSession, store?: AntigravitySessionStore): number {
+    if (store) {
+      const [seq] = store.allocateSequencesSync(1);
+      return seq;
+    }
+    return session.nextSequence();
+  }
+
+  private computeEventSignature(eventName: string, rec: Record<string, unknown>): string | null {
+    switch (eventName) {
+      case 'SessionStart':
+        return `SessionStart:${String(rec.conversationId ?? rec.conversation_id ?? 'init')}`;
+      case 'PreInvocation':
+        return `PreInvocation:${Number(rec.invocationNum ?? rec.invocation_num ?? 1)}`;
+      case 'PreToolUse': {
+        const tool = (rec.toolCall ?? rec.tool_call ?? {}) as Record<string, unknown>;
+        const step = rec.stepIdx ?? rec.step_idx ?? '';
+        return `PreToolUse:${step}:${String(tool.name ?? '')}`;
+      }
+      case 'PostToolUse': {
+        const tool = (rec.toolCall ?? rec.tool_call ?? {}) as Record<string, unknown>;
+        const step = rec.stepIdx ?? rec.step_idx ?? '';
+        return `PostToolUse:${step}:${String(tool.name ?? '')}`;
+      }
+      case 'Stop':
+        return `Stop:${Number(rec.executionNum ?? rec.execution_num ?? 1)}`;
+      default:
+        return null;
+    }
+  }
+
+  private mapSessionStart(
+    rec: Record<string, unknown>,
+    session: AdapterSession,
+    store?: AntigravitySessionStore,
+  ): AoeEvent[] {
     const conversationId = String(rec.conversationId ?? rec.conversation_id ?? session.id);
     const workspacePaths = (rec.workspacePaths ?? rec.workspace_paths ?? []) as string[];
     const workingDirectory = workspacePaths[0] ?? session.workingDirectory;
@@ -91,11 +152,15 @@ export class AntigravityMapper {
         rec.artifactDirectoryPath ?? rec.artifact_directory_path;
     }
 
+    if (rec.metadata && typeof rec.metadata === 'object') {
+      session.metadata['custom'] = sanitizePayload(rec.metadata);
+    }
+
     const event: SessionStartedEvent = {
       protocolVersion: PROTOCOL_VERSION,
       eventId: createEventId('evt'),
       sessionId: session.id,
-      sequence: session.nextSequence(),
+      sequence: this.allocateSequence(session, store),
       timestamp: new Date().toISOString(),
       eventType: 'session.started',
       payload: {
@@ -115,7 +180,11 @@ export class AntigravityMapper {
     return [validateEvent(event)];
   }
 
-  private mapPreInvocation(rec: Record<string, unknown>, session: AdapterSession): AoeEvent[] {
+  private mapPreInvocation(
+    rec: Record<string, unknown>,
+    session: AdapterSession,
+    store?: AntigravitySessionStore,
+  ): AoeEvent[] {
     const invocationNum = Number(rec.invocationNum ?? rec.invocation_num ?? 1);
     const rawUserInput = typeof rec.lastUserInput === 'string'
       ? rec.lastUserInput
@@ -123,8 +192,14 @@ export class AntigravityMapper {
         ? rec.last_user_input
         : undefined;
 
-    const taskId = session.mapTaskId(`turn_${invocationNum}`);
+    const taskId = store
+      ? store.mapTaskIdSync(`turn_${invocationNum}`)
+      : session.mapTaskId(`turn_${invocationNum}`);
+
     session.metadata['current_turn_task_id'] = taskId;
+    if (store) {
+      store.setActiveTaskIdSync(taskId);
+    }
 
     const taskName = rawUserInput
       ? sanitizeAgentText(rawUserInput).slice(0, 80)
@@ -134,7 +209,7 @@ export class AntigravityMapper {
       protocolVersion: PROTOCOL_VERSION,
       eventId: createEventId('evt'),
       sessionId: session.id,
-      sequence: session.nextSequence(),
+      sequence: this.allocateSequence(session, store),
       timestamp: new Date().toISOString(),
       eventType: 'task.started',
       payload: {
@@ -150,7 +225,11 @@ export class AntigravityMapper {
     return [validateEvent(event)];
   }
 
-  private mapPreToolUse(rec: Record<string, unknown>, session: AdapterSession): AoeEvent[] {
+  private mapPreToolUse(
+    rec: Record<string, unknown>,
+    session: AdapterSession,
+    store?: AntigravitySessionStore,
+  ): AoeEvent[] {
     const rawTool = (rec.toolCall ?? rec.tool_call ?? {}) as Record<string, unknown>;
     const toolName = String(rawTool.name ?? 'UnknownTool');
     const toolArgs = (rawTool.args ?? {}) as Record<string, unknown>;
@@ -160,8 +239,11 @@ export class AntigravityMapper {
       name: toolName,
       args: sanitizePayload(toolArgs),
     };
+
     const taskId =
-      (session.metadata['current_turn_task_id'] as string) ?? session.mapTaskId('turn_1');
+      store?.getActiveTaskIdSync() ??
+      (session.metadata['current_turn_task_id'] as string) ??
+      session.mapTaskId('turn_1');
 
     const events: AoeEvent[] = [];
 
@@ -172,7 +254,7 @@ export class AntigravityMapper {
         protocolVersion: PROTOCOL_VERSION,
         eventId: createEventId('evt'),
         sessionId: session.id,
-        sequence: session.nextSequence(),
+        sequence: this.allocateSequence(session, store),
         timestamp: new Date().toISOString(),
         eventType: 'log.emitted',
         payload: {
@@ -190,7 +272,7 @@ export class AntigravityMapper {
       protocolVersion: PROTOCOL_VERSION,
       eventId: createEventId('evt'),
       sessionId: session.id,
-      sequence: session.nextSequence(),
+      sequence: this.allocateSequence(session, store),
       timestamp: new Date().toISOString(),
       eventType: 'progress.updated',
       payload: {
@@ -206,7 +288,11 @@ export class AntigravityMapper {
     return events;
   }
 
-  private mapPostToolUse(rec: Record<string, unknown>, session: AdapterSession): AoeEvent[] {
+  private mapPostToolUse(
+    rec: Record<string, unknown>,
+    session: AdapterSession,
+    store?: AntigravitySessionStore,
+  ): AoeEvent[] {
     const rawTool = (rec.toolCall ?? rec.tool_call ?? {}) as Record<string, unknown>;
     const toolName = String(rawTool.name ?? 'UnknownTool');
     const toolArgs = (rawTool.args ?? {}) as Record<string, unknown>;
@@ -214,7 +300,9 @@ export class AntigravityMapper {
     delete session.metadata[`active_tool_${stepIdx}`];
 
     const taskId =
-      (session.metadata['current_turn_task_id'] as string) ?? session.mapTaskId('turn_1');
+      store?.getActiveTaskIdSync() ??
+      (session.metadata['current_turn_task_id'] as string) ??
+      session.mapTaskId('turn_1');
     const events: AoeEvent[] = [];
 
     if (rec.error) {
@@ -223,7 +311,7 @@ export class AntigravityMapper {
         protocolVersion: PROTOCOL_VERSION,
         eventId: createEventId('evt'),
         sessionId: session.id,
-        sequence: session.nextSequence(),
+        sequence: this.allocateSequence(session, store),
         timestamp: new Date().toISOString(),
         eventType: 'diagnostic.emitted',
         payload: {
@@ -239,7 +327,7 @@ export class AntigravityMapper {
         protocolVersion: PROTOCOL_VERSION,
         eventId: createEventId('evt'),
         sessionId: session.id,
-        sequence: session.nextSequence(),
+        sequence: this.allocateSequence(session, store),
         timestamp: new Date().toISOString(),
         eventType: 'log.emitted',
         payload: {
@@ -249,6 +337,22 @@ export class AntigravityMapper {
         },
       };
       events.push(validateEvent(logEvent));
+
+      // Record failure evidence if tool was a test runner
+      if (toolName === 'run_command' && toolArgs.CommandLine) {
+        const cmd = String(toolArgs.CommandLine);
+        const evidence = evaluateVerificationEvidence(cmd, rec.error, taskId, diagEvent.eventId);
+        if (evidence) {
+          if (store) {
+            store.recordEvidenceSync(evidence);
+          } else {
+            const list = (session.metadata['verification_evidence'] as VerificationEvidence[]) || [];
+            list.push(evidence);
+            session.metadata['verification_evidence'] = list;
+          }
+        }
+      }
+
       return events;
     }
 
@@ -259,7 +363,7 @@ export class AntigravityMapper {
         protocolVersion: PROTOCOL_VERSION,
         eventId: createEventId('evt'),
         sessionId: session.id,
-        sequence: session.nextSequence(),
+        sequence: this.allocateSequence(session, store),
         timestamp: new Date().toISOString(),
         eventType: 'file.changed',
         payload: {
@@ -284,7 +388,7 @@ export class AntigravityMapper {
         protocolVersion: PROTOCOL_VERSION,
         eventId: createEventId('evt'),
         sessionId: session.id,
-        sequence: session.nextSequence(),
+        sequence: this.allocateSequence(session, store),
         timestamp: new Date().toISOString(),
         eventType: 'file.changed',
         payload: {
@@ -302,17 +406,25 @@ export class AntigravityMapper {
         ((session.metadata['files_changed_count'] as number) || 0) + 1;
     }
 
-    // Record test verification evidence if a test command completed successfully
+    // Phase 2: Record structured verification evidence if an actual test command completed successfully
     if (toolName === 'run_command' && toolArgs.CommandLine) {
       const cmd = String(toolArgs.CommandLine);
-      if (/\b(test|vitest|jest|pytest|cargo\s+test|npm\s+test|pnpm\s+test)\b/i.test(cmd)) {
-        session.metadata['tests_verified'] = true;
+      const evidence = evaluateVerificationEvidence(cmd, undefined, taskId);
+      if (evidence) {
+        if (store) {
+          store.recordEvidenceSync(evidence);
+        } else {
+          const list = (session.metadata['verification_evidence'] as VerificationEvidence[]) || [];
+          list.push(evidence);
+          session.metadata['verification_evidence'] = list;
+        }
       }
+
       const logEvent: LogEmittedEvent = {
         protocolVersion: PROTOCOL_VERSION,
         eventId: createEventId('evt'),
         sessionId: session.id,
-        sequence: session.nextSequence(),
+        sequence: this.allocateSequence(session, store),
         timestamp: new Date().toISOString(),
         eventType: 'log.emitted',
         payload: {
@@ -328,7 +440,7 @@ export class AntigravityMapper {
       protocolVersion: PROTOCOL_VERSION,
       eventId: createEventId('evt'),
       sessionId: session.id,
-      sequence: session.nextSequence(),
+      sequence: this.allocateSequence(session, store),
       timestamp: new Date().toISOString(),
       eventType: 'progress.updated',
       payload: {
@@ -344,10 +456,16 @@ export class AntigravityMapper {
     return events;
   }
 
-  private mapStop(rec: Record<string, unknown>, session: AdapterSession): AoeEvent[] {
+  private mapStop(
+    rec: Record<string, unknown>,
+    session: AdapterSession,
+    store?: AntigravitySessionStore,
+  ): AoeEvent[] {
     const terminationReason = String(rec.terminationReason ?? rec.termination_reason ?? 'NO_TOOL_CALL');
     const taskId =
-      (session.metadata['current_turn_task_id'] as string) ?? session.mapTaskId('turn_1');
+      store?.getActiveTaskIdSync() ??
+      (session.metadata['current_turn_task_id'] as string) ??
+      session.mapTaskId('turn_1');
     const events: AoeEvent[] = [];
 
     if (terminationReason === 'ERROR') {
@@ -356,7 +474,7 @@ export class AntigravityMapper {
         protocolVersion: PROTOCOL_VERSION,
         eventId: createEventId('evt'),
         sessionId: session.id,
-        sequence: session.nextSequence(),
+        sequence: this.allocateSequence(session, store),
         timestamp: new Date().toISOString(),
         eventType: 'task.failed',
         payload: {
@@ -374,7 +492,7 @@ export class AntigravityMapper {
         protocolVersion: PROTOCOL_VERSION,
         eventId: createEventId('evt'),
         sessionId: session.id,
-        sequence: session.nextSequence(),
+        sequence: this.allocateSequence(session, store),
         timestamp: new Date().toISOString(),
         eventType: 'session.ended',
         payload: {
@@ -391,7 +509,7 @@ export class AntigravityMapper {
         protocolVersion: PROTOCOL_VERSION,
         eventId: createEventId('evt'),
         sessionId: session.id,
-        sequence: session.nextSequence(),
+        sequence: this.allocateSequence(session, store),
         timestamp: new Date().toISOString(),
         eventType: 'task.failed',
         payload: {
@@ -409,7 +527,7 @@ export class AntigravityMapper {
         protocolVersion: PROTOCOL_VERSION,
         eventId: createEventId('evt'),
         sessionId: session.id,
-        sequence: session.nextSequence(),
+        sequence: this.allocateSequence(session, store),
         timestamp: new Date().toISOString(),
         eventType: 'session.ended',
         payload: {
@@ -422,18 +540,25 @@ export class AntigravityMapper {
     }
 
     // Invariant: Do not automatically classify Stop as successful completion.
-    // Never emit task.completed without verified evidence.
+    // Never emit task.completed without verified evidence bound to this specific task.
     const metaVerified = rec.metadata && typeof rec.metadata === 'object'
       ? (rec.metadata as Record<string, unknown>).verified === true
-      : false;
-    const hasVerifiedEvidence = session.metadata['tests_verified'] === true || metaVerified;
+      : rec.verified === true;
+
+    const hasVerifiedEvidence =
+      metaVerified ||
+      (store
+        ? store.hasPassedVerificationSync(taskId)
+        : (session.metadata['verification_evidence'] as VerificationEvidence[] | undefined)?.some(
+            (ev) => ev.taskId === taskId && ev.passed,
+          ) === true);
 
     if (terminationReason === 'NO_TOOL_CALL' && hasVerifiedEvidence) {
       const taskComplete: TaskCompletedEvent = {
         protocolVersion: PROTOCOL_VERSION,
         eventId: createEventId('evt'),
         sessionId: session.id,
-        sequence: session.nextSequence(),
+        sequence: this.allocateSequence(session, store),
         timestamp: new Date().toISOString(),
         eventType: 'task.completed',
         payload: {
@@ -448,7 +573,7 @@ export class AntigravityMapper {
         protocolVersion: PROTOCOL_VERSION,
         eventId: createEventId('evt'),
         sessionId: session.id,
-        sequence: session.nextSequence(),
+        sequence: this.allocateSequence(session, store),
         timestamp: new Date().toISOString(),
         eventType: 'session.ended',
         payload: {
@@ -465,7 +590,7 @@ export class AntigravityMapper {
       protocolVersion: PROTOCOL_VERSION,
       eventId: createEventId('evt'),
       sessionId: session.id,
-      sequence: session.nextSequence(),
+      sequence: this.allocateSequence(session, store),
       timestamp: new Date().toISOString(),
       eventType: 'task.updated',
       payload: {
@@ -481,7 +606,7 @@ export class AntigravityMapper {
       protocolVersion: PROTOCOL_VERSION,
       eventId: createEventId('evt'),
       sessionId: session.id,
-      sequence: session.nextSequence(),
+      sequence: this.allocateSequence(session, store),
       timestamp: new Date().toISOString(),
       eventType: 'session.ended',
       payload: {

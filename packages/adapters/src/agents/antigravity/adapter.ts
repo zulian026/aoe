@@ -8,6 +8,7 @@ import type {
 } from '../../contracts/index.js';
 import { createAdapterSession } from '../../contracts/session.js';
 import { AntigravityMapper } from './mapper.js';
+import { AntigravitySessionStore } from './state-store.js';
 import { AdapterParsingError } from '../../errors/index.js';
 
 export class AntigravityAdapter implements AgentAdapter {
@@ -78,7 +79,10 @@ export class AntigravityAdapter implements AgentAdapter {
     input: unknown,
     session: AdapterSession,
     explicitEvent?: string,
+    store?: AntigravitySessionStore,
   ): AoeEvent[] {
+    const effectiveStore =
+      store ?? (session.metadata['sessionStore'] as AntigravitySessionStore | undefined);
     let parsed: unknown = input;
 
     if (typeof input === 'string') {
@@ -101,12 +105,12 @@ export class AntigravityAdapter implements AgentAdapter {
     if (Array.isArray(parsed)) {
       const results: AoeEvent[] = [];
       for (const item of parsed) {
-        results.push(...this.mapper.mapEvent(item, session, explicitEvent));
+        results.push(...this.mapper.mapEvent(item, session, explicitEvent, effectiveStore));
       }
       return results;
     }
 
-    return this.mapper.mapEvent(parsed, session, explicitEvent);
+    return this.mapper.mapEvent(parsed, session, explicitEvent, effectiveStore);
   }
 
   public dispose(): void {

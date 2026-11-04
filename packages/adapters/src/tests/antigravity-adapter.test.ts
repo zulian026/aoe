@@ -1,5 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import { Readable, Writable } from 'node:stream';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { AntigravityAdapter } from '../agents/antigravity/adapter.js';
 import {
   runHookBridge,
@@ -10,14 +13,32 @@ import {
   UnixSocketIpcClient,
   resolveSocketPath,
 } from '../agents/antigravity/ipc-transport.js';
+import {
+  AntigravitySessionStore,
+  sanitizeSessionId,
+} from '../agents/antigravity/state-store.js';
+import {
+  identifyTestRunner,
+  evaluateVerificationEvidence,
+} from '../agents/antigravity/evidence.js';
 import { AdapterParsingError } from '../errors/index.js';
-import type { AoeEvent } from '@zyanx04/protocol';
+import type { AoeEvent, TaskCompletedEvent, TaskUpdatedEvent } from '@zyanx04/protocol';
 
 describe('AntigravityAdapter & Hook Bridge Suite', () => {
   let adapter: AntigravityAdapter;
+  const testSessionDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aoe-adapter-test-'));
+  process.env.AOE_SESSION_DIR = testSessionDir;
 
   beforeEach(() => {
     adapter = new AntigravityAdapter();
+  });
+
+  afterAll(() => {
+    try {
+      fs.rmSync(testSessionDir, { recursive: true, force: true });
+    } catch {
+      // Ignore cleanup error
+    }
   });
 
   // 1. SessionStart normalization
@@ -156,7 +177,18 @@ describe('AntigravityAdapter & Hook Bridge Suite', () => {
   // 6. Stop with successful verified outcome
   it('normalizes Stop with verified outcome into task.completed (verified: true) and session.ended', () => {
     const session = adapter.initialize({});
-    session.metadata['tests_verified'] = true;
+    const taskId = session.mapTaskId('turn_1');
+    session.metadata['current_turn_task_id'] = taskId;
+    session.metadata['verification_evidence'] = [
+      {
+        taskId,
+        runner: 'vitest',
+        command: 'vitest run',
+        exitCode: 0,
+        passed: true,
+        timestamp: new Date().toISOString(),
+      },
+    ];
 
     const payload = {
       executionNum: 1,
@@ -200,6 +232,7 @@ describe('AntigravityAdapter & Hook Bridge Suite', () => {
   it('does NOT emit task.completed when Stop has NO_TOOL_CALL but lacks verification evidence', () => {
     const session = adapter.initialize({});
     delete session.metadata['tests_verified'];
+    delete session.metadata['verification_evidence'];
 
     const payload = {
       executionNum: 1,
@@ -225,6 +258,7 @@ describe('AntigravityAdapter & Hook Bridge Suite', () => {
     const session = adapter.initialize({});
     const sparsePayload = {
       conversationId: 'minimal-id',
+      hookEventName: 'SessionStart',
     };
 
     const events = adapter.normalize(sparsePayload, session);
@@ -309,7 +343,7 @@ describe('AntigravityAdapter & Hook Bridge Suite', () => {
   // 16. Hook response latency and timeout behavior
   it('runHookBridge processes input and returns valid Antigravity JSON on stdout', async () => {
     const stdinData = JSON.stringify({
-      conversationId: 'conv-test-bridge',
+      conversationId: `conv-test-bridge-${Date.now()}`,
       toolCall: { name: 'run_command', args: { CommandLine: 'ls' } },
       stepIdx: 1,
     });
@@ -360,7 +394,7 @@ describe('AntigravityAdapter & Hook Bridge Suite', () => {
 
     try {
       const stdinData = JSON.stringify({
-        conversationId: 'conv-e2e-ipc',
+        conversationId: `conv-e2e-ipc-${Date.now()}`,
         hookEventName: 'SessionStart',
         workspacePaths: ['/tmp/test-project'],
       });
@@ -394,5 +428,492 @@ describe('AntigravityAdapter & Hook Bridge Suite', () => {
     } finally {
       await server.close();
     }
+  });
+
+  // =========================================================================
+  // Phase 1: Stateful Session Authority & Cross-Process Sequencing Tests
+  // =========================================================================
+  describe('Stateful Session Authority & Cross-Process Sequencing', () => {
+    it('allocates strictly monotonic sequence numbers across discrete hook processes', () => {
+      const convId = `test-seq-processes-${Date.now()}`;
+      const p1Store = new AntigravitySessionStore(convId, testSessionDir);
+      const p2Store = new AntigravitySessionStore(convId, testSessionDir);
+      const p3Store = new AntigravitySessionStore(convId, testSessionDir);
+      const p4Store = new AntigravitySessionStore(convId, testSessionDir);
+      const p5Store = new AntigravitySessionStore(convId, testSessionDir);
+
+      const s1 = adapter.initialize({}, convId);
+      const e1 = adapter.normalize({ hookEventName: 'SessionStart' }, s1, undefined, p1Store);
+
+      const s2 = adapter.initialize({}, convId);
+      const e2 = adapter.normalize(
+        { hookEventName: 'PreInvocation', lastUserInput: 'Implement auth controller' },
+        s2,
+        undefined,
+        p2Store,
+      );
+
+      const s3 = adapter.initialize({}, convId);
+      const e3 = adapter.normalize(
+        {
+          hookEventName: 'PreToolUse',
+          toolCall: { name: 'run_command', args: { CommandLine: 'pnpm test' } },
+          stepIdx: 1,
+        },
+        s3,
+        undefined,
+        p3Store,
+      );
+
+      const s4 = adapter.initialize({}, convId);
+      const e4 = adapter.normalize(
+        {
+          hookEventName: 'PostToolUse',
+          toolCall: { name: 'run_command', args: { CommandLine: 'pnpm test' } },
+          stepIdx: 1,
+        },
+        s4,
+        undefined,
+        p4Store,
+      );
+
+      const s5 = adapter.initialize({}, convId);
+      const e5 = adapter.normalize(
+        {
+          hookEventName: 'Stop',
+          terminationReason: 'NO_TOOL_CALL',
+          executionNum: 1,
+        },
+        s5,
+        undefined,
+        p5Store,
+      );
+
+      const allEvents = [...e1, ...e2, ...e3, ...e4, ...e5];
+      expect(allEvents.length).toBeGreaterThanOrEqual(6);
+
+      // Verify sequence is strictly monotonic starting at 0 with no collisions or resets
+      for (let i = 0; i < allEvents.length; i++) {
+        expect(allEvents[i].sequence).toBe(i);
+      }
+    });
+
+    it('allocates non-overlapping monotonic sequences under concurrent hook execution', async () => {
+      const convId = `test-concurrent-alloc-${Date.now()}`;
+      const store = new AntigravitySessionStore(convId, testSessionDir);
+
+      const promises = Array.from({ length: 10 }, async () => {
+        await new Promise((r) => setTimeout(r, Math.random() * 10));
+        return store.allocateSequencesSync(2);
+      });
+
+      const results = await Promise.all(promises);
+      const allAllocated: number[] = [];
+      for (const range of results) {
+        expect(range).toHaveLength(2);
+        allAllocated.push(...range);
+      }
+
+      expect(allAllocated).toHaveLength(20);
+      allAllocated.sort((a, b) => a - b);
+      for (let i = 0; i < 20; i++) {
+        expect(allAllocated[i]).toBe(i);
+      }
+    });
+
+    it('persists state authority and recovers seamlessly across restarts', () => {
+      const convId = `test-state-restart-${Date.now()}`;
+      const initialStore = new AntigravitySessionStore(convId, testSessionDir);
+
+      initialStore.setActiveTaskIdSync('task-turn-1');
+      const taskId1 = initialStore.mapTaskIdSync('turn_1');
+      const seqRange = initialStore.allocateSequencesSync(3);
+      expect(seqRange).toEqual([0, 1, 2]);
+
+      // New store instance on the same session directory simulating restart
+      const recoveredStore = new AntigravitySessionStore(convId, testSessionDir);
+      expect(recoveredStore.getActiveTaskIdSync()).toBe('task-turn-1');
+      expect(recoveredStore.mapTaskIdSync('turn_1')).toBe(taskId1);
+
+      const nextSeq = recoveredStore.allocateSequencesSync(1);
+      expect(nextSeq).toEqual([3]);
+    });
+
+    it('deduplicates identical hook event signatures safely', () => {
+      const convId = `test-dedup-sig-${Date.now()}`;
+      const store = new AntigravitySessionStore(convId, testSessionDir);
+      const session = adapter.initialize({}, convId);
+
+      const payload = {
+        conversationId: convId,
+        hookEventName: 'SessionStart',
+        workspacePaths: ['/test/project'],
+      };
+
+      const first = adapter.normalize(payload, session, undefined, store);
+      expect(first).toHaveLength(1);
+
+      const duplicate = adapter.normalize(payload, session, undefined, store);
+      expect(duplicate).toHaveLength(0);
+    });
+
+    it('maintains strict session isolation between conversations', () => {
+      const convA = `test-iso-a-${Date.now()}`;
+      const convB = `test-iso-b-${Date.now()}`;
+      const storeA = new AntigravitySessionStore(convA, testSessionDir);
+      const storeB = new AntigravitySessionStore(convB, testSessionDir);
+
+      storeA.allocateSequencesSync(5);
+      storeA.setActiveTaskIdSync('task-A');
+
+      expect(storeB.getStateSync().currentSequence).toBe(-1);
+      expect(storeB.getActiveTaskIdSync()).toBeUndefined();
+    });
+  });
+
+  // =========================================================================
+  // Phase 2: Verification Evidence Model & Anti-False-Positive Tests
+  // =========================================================================
+  describe('Verification Evidence Model', () => {
+    it('identifyTestRunner strictly recognizes test commands and rejects non-test utilities', () => {
+      expect(identifyTestRunner('npm test').isTestRunner).toBe(true);
+      expect(identifyTestRunner('npm run test').isTestRunner).toBe(true);
+      expect(identifyTestRunner('pnpm test').isTestRunner).toBe(true);
+      expect(identifyTestRunner('pnpm --filter @zyanx04/adapters test').isTestRunner).toBe(true);
+      expect(identifyTestRunner('yarn test').isTestRunner).toBe(true);
+      expect(identifyTestRunner('bun test').isTestRunner).toBe(true);
+      expect(identifyTestRunner('vitest run src/tests/adapter.test.ts').runnerName).toBe('vitest');
+      expect(identifyTestRunner('jest --coverage').runnerName).toBe('jest');
+      expect(identifyTestRunner('pytest -v tests/').runnerName).toBe('pytest');
+      expect(identifyTestRunner('cargo test --all').runnerName).toBe('cargo-test');
+      expect(identifyTestRunner('go test ./...').runnerName).toBe('go-test');
+
+      // False positive hazards - MUST return false for isTestRunner
+      expect(identifyTestRunner('mkdir test').isTestRunner).toBe(false);
+      expect(identifyTestRunner('mkdir -p src/test').isTestRunner).toBe(false);
+      expect(identifyTestRunner('cat test.txt').isTestRunner).toBe(false);
+      expect(identifyTestRunner('echo "test passed"').isTestRunner).toBe(false);
+      expect(identifyTestRunner('touch test.ts').isTestRunner).toBe(false);
+      expect(identifyTestRunner('git status').isTestRunner).toBe(false);
+      expect(identifyTestRunner('ls -la test/').isTestRunner).toBe(false);
+      expect(identifyTestRunner('rm -rf test').isTestRunner).toBe(false);
+    });
+
+    it('evaluateVerificationEvidence generates structured evidence only for valid test commands', () => {
+      const validPass = evaluateVerificationEvidence('pnpm test', undefined, 'task-1');
+      expect(validPass).toBeDefined();
+      expect(validPass?.passed).toBe(true);
+      expect(validPass?.taskId).toBe('task-1');
+      expect(validPass?.runnerName).toBe('package-manager-test');
+
+      const validFail = evaluateVerificationEvidence('pytest', 'exit code 1', 'task-1');
+      expect(validFail).toBeDefined();
+      expect(validFail?.passed).toBe(false);
+      expect(validFail?.runnerName).toBe('pytest');
+
+      const nonTest = evaluateVerificationEvidence('mkdir test', undefined, 'task-1');
+      expect(nonTest).toBeNull();
+    });
+
+    it('PostToolUse with mkdir test produces NO verification evidence and Stop emits warning without task.completed', () => {
+      const convId = `test-mkdir-hazard-${Date.now()}`;
+      const store = new AntigravitySessionStore(convId, testSessionDir);
+      const session = adapter.initialize({}, convId);
+
+      // 1. PreInvocation starts turn 1
+      adapter.normalize(
+        { hookEventName: 'PreInvocation', invocationNum: 1, conversationId: convId },
+        session,
+        undefined,
+        store,
+      );
+      const taskId = store.getActiveTaskIdSync()!;
+      expect(taskId).toBeDefined();
+
+      // 2. PostToolUse with mkdir test
+      adapter.normalize(
+        {
+          hookEventName: 'PostToolUse',
+          conversationId: convId,
+          toolCall: { name: 'run_command', args: { CommandLine: 'mkdir test' } },
+        },
+        session,
+        undefined,
+        store,
+      );
+
+      expect(store.hasPassedVerificationSync(taskId)).toBe(false);
+      expect(store.getStateSync().verificationEvidence).toHaveLength(0);
+
+      // 3. Stop hook
+      const stopEvents = adapter.normalize(
+        {
+          hookEventName: 'Stop',
+          conversationId: convId,
+          terminationReason: 'NO_TOOL_CALL',
+          executionNum: 1,
+        },
+        session,
+        undefined,
+        store,
+      );
+
+      const completed = stopEvents.find((e) => e.eventType === 'task.completed');
+      expect(completed).toBeUndefined(); // Invariant: Never fabricate completion!
+
+      const updated = stopEvents.find((e) => e.eventType === 'task.updated') as
+        | TaskUpdatedEvent
+        | undefined;
+      expect(updated).toBeDefined();
+      expect(updated?.payload.status).toBe('warning');
+    });
+
+    it('Stop emits task.completed ONLY when active task has passing verification evidence', () => {
+      const convId = `test-pass-evidence-${Date.now()}`;
+      const store = new AntigravitySessionStore(convId, testSessionDir);
+      const session = adapter.initialize({}, convId);
+
+      // 1. PreInvocation
+      adapter.normalize(
+        { hookEventName: 'PreInvocation', invocationNum: 1, conversationId: convId },
+        session,
+        undefined,
+        store,
+      );
+      const taskId = store.getActiveTaskIdSync()!;
+
+      // 2. Successful test execution
+      adapter.normalize(
+        {
+          hookEventName: 'PostToolUse',
+          conversationId: convId,
+          toolCall: { name: 'run_command', args: { CommandLine: 'pnpm test' } },
+        },
+        session,
+        undefined,
+        store,
+      );
+
+      expect(store.hasPassedVerificationSync(taskId)).toBe(true);
+
+      // 3. Stop
+      const stopEvents = adapter.normalize(
+        {
+          hookEventName: 'Stop',
+          conversationId: convId,
+          terminationReason: 'NO_TOOL_CALL',
+          executionNum: 1,
+        },
+        session,
+        undefined,
+        store,
+      );
+
+      const completed = stopEvents.find((e) => e.eventType === 'task.completed') as
+        | TaskCompletedEvent
+        | undefined;
+      expect(completed).toBeDefined();
+      expect(completed?.payload.verified).toBe(true);
+      expect(completed?.payload.taskId).toBe(taskId);
+    });
+
+    it('verification evidence is task-bound and does NOT complete subsequent tasks without new verification', () => {
+      const convId = `test-evidence-isolation-${Date.now()}`;
+      const store = new AntigravitySessionStore(convId, testSessionDir);
+      const session = adapter.initialize({}, convId);
+
+      // Turn 1: run tests and pass
+      adapter.normalize(
+        { hookEventName: 'PreInvocation', invocationNum: 1, conversationId: convId },
+        session,
+        undefined,
+        store,
+      );
+      const task1 = store.getActiveTaskIdSync()!;
+      adapter.normalize(
+        {
+          hookEventName: 'PostToolUse',
+          conversationId: convId,
+          toolCall: { name: 'run_command', args: { CommandLine: 'vitest run' } },
+        },
+        session,
+        undefined,
+        store,
+      );
+      expect(store.hasPassedVerificationSync(task1)).toBe(true);
+
+      // Turn 2: Starts a new turn task
+      adapter.normalize(
+        { hookEventName: 'PreInvocation', invocationNum: 2, conversationId: convId },
+        session,
+        undefined,
+        store,
+      );
+      const task2 = store.getActiveTaskIdSync()!;
+      expect(task2).not.toBe(task1);
+
+      // No tests run in Turn 2, only file write
+      adapter.normalize(
+        {
+          hookEventName: 'PostToolUse',
+          conversationId: convId,
+          toolCall: { name: 'write_file', args: { Path: '/workspace/foo.ts', Content: 'code' } },
+        },
+        session,
+        undefined,
+        store,
+      );
+
+      expect(store.hasPassedVerificationSync(task2)).toBe(false);
+
+      // Stop Turn 2
+      const stopEvents = adapter.normalize(
+        {
+          hookEventName: 'Stop',
+          conversationId: convId,
+          terminationReason: 'NO_TOOL_CALL',
+          executionNum: 2,
+        },
+        session,
+        undefined,
+        store,
+      );
+
+      const completed = stopEvents.find((e) => e.eventType === 'task.completed');
+      expect(completed).toBeUndefined(); // Must NOT complete task2 with task1's evidence!
+    });
+
+    it('failed test run does not allow task completion on Stop', () => {
+      const convId = `test-failed-test-${Date.now()}`;
+      const store = new AntigravitySessionStore(convId, testSessionDir);
+      const session = adapter.initialize({}, convId);
+
+      adapter.normalize(
+        { hookEventName: 'PreInvocation', invocationNum: 1, conversationId: convId },
+        session,
+        undefined,
+        store,
+      );
+      const taskId = store.getActiveTaskIdSync()!;
+
+      adapter.normalize(
+        {
+          hookEventName: 'PostToolUse',
+          conversationId: convId,
+          toolCall: { name: 'run_command', args: { CommandLine: 'pnpm test' } },
+          error: 'Test suite failed with 3 errors',
+        },
+        session,
+        undefined,
+        store,
+      );
+
+      expect(store.hasPassedVerificationSync(taskId)).toBe(false);
+
+      const stopEvents = adapter.normalize(
+        {
+          hookEventName: 'Stop',
+          conversationId: convId,
+          terminationReason: 'NO_TOOL_CALL',
+          executionNum: 1,
+        },
+        session,
+        undefined,
+        store,
+      );
+
+      const completed = stopEvents.find((e) => e.eventType === 'task.completed');
+      expect(completed).toBeUndefined();
+    });
+  });
+
+  // =========================================================================
+  // Phase 3: Explicit Hook Event Identification Tests
+  // =========================================================================
+  describe('Explicit Hook Event Identification & Parsing Safety', () => {
+    it('PostToolUse without error is not misclassified as PreToolUse', () => {
+      const session = adapter.initialize({});
+      const events = adapter.normalize(
+        {
+          hookEventName: 'PostToolUse',
+          toolCall: { name: 'read_file', args: { Path: '/test.ts' } },
+        },
+        session,
+      );
+
+      const progress = events.find((e) => e.eventType === 'progress.updated');
+      expect(progress).toBeDefined();
+      expect((progress?.payload as { currentWork: string }).currentWork).toContain('read_file finished');
+    });
+
+    it('throws AdapterParsingError when hook event name is omitted or unknown', () => {
+      const session = adapter.initialize({});
+      expect(() => {
+        adapter.normalize({ conversationId: 'c1' }, session);
+      }).toThrow(AdapterParsingError);
+
+      expect(() => {
+        adapter.normalize({ hookEventName: 'NonExistentHookEvent' }, session);
+      }).toThrow(AdapterParsingError);
+    });
+  });
+
+  // =========================================================================
+  // Phase 4: POSIX Socket Portability & Security Hardening
+  // =========================================================================
+  describe('POSIX Socket Portability & Security Hardening', () => {
+    it('sanitizeSessionId safely handles empty, whitespace, and path traversal strings', () => {
+      expect(sanitizeSessionId('')).toBe('default');
+      expect(sanitizeSessionId('   ')).toBe('default');
+      expect(sanitizeSessionId(undefined)).toBe('default');
+      expect(sanitizeSessionId('../../../../etc/passwd')).toBe('____________etc_passwd');
+      expect(sanitizeSessionId('my-session-123')).toBe('my-session-123');
+    });
+
+    it('resolveSocketPath stays strictly under 96 bytes even with long session IDs', () => {
+      const longId = 'a'.repeat(128);
+      const sockPath = resolveSocketPath(longId);
+      const byteLen = Buffer.byteLength(sockPath, 'utf-8');
+      expect(byteLen).toBeLessThanOrEqual(96);
+      expect(sockPath).toContain('aoe-');
+      expect(sockPath.endsWith('.sock')).toBe(true);
+    });
+  });
+
+  // =========================================================================
+  // Phase 5: Hook Bridge Diagnostics & Stream Drainage Tests
+  // =========================================================================
+  describe('Hook Bridge Robustness & Stream Drainage', () => {
+    it('runHookBridge handles malformed stdin gracefully without throwing', async () => {
+      const mockStdin = Readable.from(['{ corrupt json ']);
+      let mockStdout = '';
+      let mockStderr = '';
+
+      const mockStdoutStream = new Writable({
+        write(chunk, _encoding, callback) {
+          mockStdout += chunk.toString();
+          callback();
+        },
+      });
+      const mockStderrStream = new Writable({
+        write(chunk, _encoding, callback) {
+          mockStderr += chunk.toString();
+          callback();
+        },
+      });
+
+      const result = await runHookBridge({
+        event: 'PreToolUse',
+        stdinStream: mockStdin,
+        stdoutStream: mockStdoutStream,
+        stderrStream: mockStderrStream,
+        timeoutMs: 300,
+      });
+
+      expect(result.success).toBe(false);
+      expect(mockStderr).toContain('[aoe-bridge]');
+      const response = JSON.parse(mockStdout.trim());
+      expect(response).toEqual({ decision: 'allow' });
+    });
   });
 });
