@@ -569,6 +569,33 @@ describe('AntigravityAdapter & Hook Bridge Suite', () => {
       expect(storeB.getStateSync().currentSequence).toBe(-1);
       expect(storeB.getActiveTaskIdSync()).toBeUndefined();
     });
+
+    it('Stop hook marks store as terminated and clears activeTaskId', () => {
+      const convId = `test-term-${Date.now()}`;
+      const store = new AntigravitySessionStore(convId, testSessionDir);
+      const session = adapter.initialize({}, convId);
+
+      adapter.normalize(
+        { hookEventName: 'PreInvocation', invocationNum: 1, conversationId: convId },
+        session,
+        undefined,
+        store,
+      );
+      expect(store.getActiveTaskIdSync()).toBeDefined();
+      expect(store.getStateSync().isTerminated).toBe(false);
+
+      adapter.normalize(
+        { hookEventName: 'Stop', conversationId: convId, terminationReason: 'NO_TOOL_CALL' },
+        session,
+        undefined,
+        store,
+      );
+
+      const state = store.getStateSync();
+      expect(state.isTerminated).toBe(true);
+      expect(state.terminationReason).toBe('NO_TOOL_CALL');
+      expect(state.activeTaskId).toBeUndefined();
+    });
   });
 
   // =========================================================================

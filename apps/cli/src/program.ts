@@ -6,6 +6,7 @@ import { registerThemeCommand } from './commands/theme.js';
 import { registerDoctorCommand } from './commands/doctor.js';
 import { registerSkillCommand } from './commands/skill.js';
 import { registerBridgeCommand } from './commands/bridge.js';
+import { registerSidecarCommand } from './commands/sidecar.js';
 import { formatErrorOutput } from './utils/errors.js';
 import { ExitCode } from './runtime/exit-codes.js';
 
@@ -32,6 +33,7 @@ export function createProgram(): Command {
   registerDoctorCommand(program);
   registerSkillCommand(program);
   registerBridgeCommand(program);
+  registerSidecarCommand(program);
 
   // Informative version command
   program

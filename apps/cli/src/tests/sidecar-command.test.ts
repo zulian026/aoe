@@ -1,0 +1,108 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import net from 'node:net';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import { runCli } from '../program.js';
+import { ExitCode } from '../runtime/exit-codes.js';
+import { discoverActiveSocket } from '../commands/sidecar.js';
+import { createEvent } from '@zyanx04/protocol';
+
+describe('aoe sidecar CLI command', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aoe-sidecar-cli-'));
+  });
+
+  afterEach(() => {
+    try {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch {}
+  });
+
+  it('exits cleanly with code 0 and message when no active session socket exists', async () => {
+    let captured = '';
+    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation((chunk) => {
+      captured += chunk.toString();
+      return true;
+    });
+
+    const exitCode = await runCli(['node', 'aoe', 'sidecar', '--dir', tmpDir]);
+    expect(exitCode).toBe(ExitCode.SUCCESS);
+    expect(captured).toContain('No active agent session found');
+
+    stdoutSpy.mockRestore();
+  });
+
+  it('outputs valid JSON when --json is provided and no session is found', async () => {
+    let captured = '';
+    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation((chunk) => {
+      captured += chunk.toString();
+      return true;
+    });
+
+    const exitCode = await runCli(['node', 'aoe', 'sidecar', '--json', '--dir', tmpDir]);
+    expect(exitCode).toBe(ExitCode.SUCCESS);
+
+    const parsed = JSON.parse(captured.trim());
+    expect(parsed.status).toBe('no_session');
+
+    stdoutSpy.mockRestore();
+  });
+
+  it('discoverActiveSocket discovers the latest active unix domain socket in custom dir', async () => {
+    const sockPath = path.join(tmpDir, 'aoe-sess_abc.sock');
+    const server = net.createServer();
+    await new Promise<void>((resolve) => server.listen(sockPath, () => resolve()));
+
+    const found = discoverActiveSocket(tmpDir);
+    expect(found).toBe(sockPath);
+
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  });
+
+  it('connects to active socket with --once and outputs snapshot', async () => {
+    const sockPath = path.join(tmpDir, 'aoe-test-once.sock');
+    let clientConn: net.Socket | null = null;
+    const server = net.createServer((conn) => {
+      clientConn = conn;
+      const e0 = createEvent('session.started', {
+        sessionId: 'sess_once_test',
+        sequence: 0,
+        payload: { agent: { name: 'antigravity' }, workingDirectory: '/dir' },
+      });
+      conn.write(JSON.stringify(e0) + '\n');
+    });
+
+    await new Promise<void>((resolve) => server.listen(sockPath, () => resolve()));
+
+    let captured = '';
+    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation((chunk) => {
+      captured += chunk.toString();
+      return true;
+    });
+
+    // Mock process.exit so command can exit cleanly
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+
+    await runCli(['node', 'aoe', 'sidecar', '--socket', sockPath, '--once', '--json']);
+
+    await new Promise((resolve) => setTimeout(resolve, 80));
+
+    stdoutSpy.mockRestore();
+    exitSpy.mockRestore();
+
+    if (clientConn) {
+      try {
+        (clientConn as net.Socket).destroy();
+      } catch {}
+    }
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+
+    expect(captured).toContain('sess_once_test');
+    const parsed = JSON.parse(captured.trim());
+    expect(parsed.sessionId).toBe('sess_once_test');
+    expect(parsed.status).toBe('active');
+  });
+});

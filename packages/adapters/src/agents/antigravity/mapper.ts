@@ -501,6 +501,7 @@ export class AntigravityMapper {
         },
       };
       events.push(validateEvent(sessionEnd));
+      store?.markTerminatedSync('ERROR');
       return events;
     }
 
@@ -536,6 +537,7 @@ export class AntigravityMapper {
         },
       };
       events.push(validateEvent(sessionEnd));
+      store?.markTerminatedSync('USER_CANCELED');
       return events;
     }
 
@@ -582,6 +584,7 @@ export class AntigravityMapper {
         },
       };
       events.push(validateEvent(sessionEnd));
+      store?.markTerminatedSync(terminationReason);
       return events;
     }
 
@@ -615,6 +618,7 @@ export class AntigravityMapper {
       },
     };
     events.push(validateEvent(sessionEnd));
+    store?.markTerminatedSync(terminationReason);
 
     return events;
   }

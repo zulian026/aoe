@@ -176,6 +176,26 @@ export class AntigravitySessionStore {
   }
 
   /**
+   * Clears the active task ID in the persistent store.
+   */
+  public clearActiveTaskIdSync(): void {
+    this.withLockSync((state) => {
+      state.activeTaskId = undefined;
+    });
+  }
+
+  /**
+   * Marks the session as terminated in the persistent store.
+   */
+  public markTerminatedSync(reason?: string): void {
+    this.withLockSync((state) => {
+      state.isTerminated = true;
+      state.terminationReason = reason;
+      state.activeTaskId = undefined;
+    });
+  }
+
+  /**
    * Reads state without locking (internal use only).
    */
   private readStateUnsafe(): PersistentSessionState {

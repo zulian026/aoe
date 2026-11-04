@@ -10,6 +10,7 @@ export * from './event-store.js';
 export * from './state-dispatcher.js';
 export * from './event-processor.js';
 export * from './engine.js';
+export * from './sidecar/index.js';
 
 // Legacy M00 SessionState interface
 export interface SessionState {
