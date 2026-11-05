@@ -10,7 +10,7 @@ export const SessionStartedPayloadSchema = z.object({
   }),
   workingDirectory: z.string().min(1, 'workingDirectory is required'),
   parentSessionId: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type SessionStartedPayload = z.infer<typeof SessionStartedPayloadSchema>;

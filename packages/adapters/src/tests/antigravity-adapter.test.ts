@@ -13,10 +13,7 @@ import {
   UnixSocketIpcClient,
   resolveSocketPath,
 } from '../agents/antigravity/ipc-transport.js';
-import {
-  AntigravitySessionStore,
-  sanitizeSessionId,
-} from '../agents/antigravity/state-store.js';
+import { AntigravitySessionStore, sanitizeSessionId } from '../agents/antigravity/state-store.js';
 import {
   identifyTestRunner,
   evaluateVerificationEvidence,
@@ -689,8 +686,7 @@ describe('AntigravityAdapter & Hook Bridge Suite', () => {
       expect(completed).toBeUndefined(); // Invariant: Never fabricate completion!
 
       const updated = stopEvents.find((e) => e.eventType === 'task.updated') as
-        | TaskUpdatedEvent
-        | undefined;
+        TaskUpdatedEvent | undefined;
       expect(updated).toBeDefined();
       expect(updated?.payload.status).toBe('warning');
     });
@@ -737,8 +733,7 @@ describe('AntigravityAdapter & Hook Bridge Suite', () => {
       );
 
       const completed = stopEvents.find((e) => e.eventType === 'task.completed') as
-        | TaskCompletedEvent
-        | undefined;
+        TaskCompletedEvent | undefined;
       expect(completed).toBeDefined();
       expect(completed?.payload.verified).toBe(true);
       expect(completed?.payload.taskId).toBe(taskId);
@@ -870,7 +865,9 @@ describe('AntigravityAdapter & Hook Bridge Suite', () => {
 
       const progress = events.find((e) => e.eventType === 'progress.updated');
       expect(progress).toBeDefined();
-      expect((progress?.payload as { currentWork: string }).currentWork).toContain('read_file finished');
+      expect((progress?.payload as { currentWork: string }).currentWork).toContain(
+        'read_file finished',
+      );
     });
 
     it('throws AdapterParsingError when hook event name is omitted or unknown', () => {
@@ -904,6 +901,22 @@ describe('AntigravityAdapter & Hook Bridge Suite', () => {
       expect(byteLen).toBeLessThanOrEqual(96);
       expect(sockPath).toContain('aoe-');
       expect(sockPath.endsWith('.sock')).toBe(true);
+    });
+
+    it('enforces 0o600 permissions on persistent state and lock files on POSIX', () => {
+      if (process.platform === 'win32') {
+        return; // POSIX file permissions test
+      }
+      const convId = `test-perms-${Date.now()}`;
+      const store = new AntigravitySessionStore(convId, testSessionDir);
+      store.allocateSequencesSync(1);
+
+      expect(fs.existsSync(store.statePath)).toBe(true);
+      const stateStat = fs.statSync(store.statePath);
+      // Mask mode with 0o777 to get permission bits
+      const mode = stateStat.mode & 0o777;
+      expect(mode).toBe(0o600);
+      store.clean();
     });
   });
 

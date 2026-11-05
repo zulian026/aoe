@@ -1,8 +1,7 @@
 import { validateEvent, type AoeEvent, PROTOCOL_VERSION } from '@zyanx04/protocol';
 
 export type ValidationOutcome =
-  | { valid: true; event: AoeEvent }
-  | { valid: false; error: string; raw: unknown };
+  { valid: true; event: AoeEvent } | { valid: false; error: string; raw: unknown };
 
 /**
  * Validates raw data or JSON strings against canonical AOE Protocol v1.0.0.

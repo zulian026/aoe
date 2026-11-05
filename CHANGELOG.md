@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.2] - 2026-11-05
+
+### Added
+
+- **Hybrid Bundled CLI Architecture (Strategy D)**:
+  - Bundled internal workspace packages (`@zyanx04/protocol`, `@zyanx04/themes`, `@zyanx04/core`, `@zyanx04/components`, `@zyanx04/adapters`, `@zyanx04/renderer`) into `@zyanx04/cli` distribution via `tsup 9.0.0`.
+  - External runtime dependencies strictly constrained to native Node/Ink ecosystem (`ink`, `react`, `yoga-layout`, `commander`, `zod`).
+  - Tarball compressed footprint optimized to 88 KB across 23 packaged files.
+- **Terminal Sidecar Presentation Layer**:
+  - Independent sidecar process (`aoe sidecar`) powered by Ink and Yoga Layout.
+  - Live session header, current task panel, activity timeline, verification audit, and system diagnostics panels.
+  - Bidirectional IPC server and client communication modes over Unix domain socket / named pipe.
+- **Antigravity Hook Bridge & Stateful Session Store**:
+  - Stateful session tracking with atomic file locking and POSIX `0o600` permissions.
+  - Real-environment verified Antigravity adapter translating agent lifecycle hooks to canonical AOE Protocol v1.0.0.
+  - Safe Windows named pipe path discovery and fallback.
+- **Clean-Install Verification Harness**:
+  - Comprehensive 7-phase validation script (`scripts/verify-clean-install.sh`) validating tarball extraction, zero-symlink execution, CLI commands, protocol stdin piping, and sidecar IPC communication.
+
+### Changed
+
+- **Release Workflow Hardening**:
+  - Upgraded release CI workflow to Node.js 22.x LTS and pinned `npm@11.21.2` for full OIDC Trusted Publishing compatibility.
+  - Made npm OIDC Trusted Publishing the explicit primary publication mechanism (`id-token: write`, provenance attestation).
+  - Pre-publication barrier: artifact packing, checksum generation (`SHA256SUMS`), and clean-install verification occur prior to npm publication.
+
+### Security
+
+- **Supply Chain Security Remediation**:
+  - Remediated High severity Zod advisory `GHSA-mrhx-c7xc-m3w5` across all workspace packages by upgrading Zod to `^4.6.7` with explicit two-argument `z.record(z.string(), z.unknown())` schemas.
+  - Production vulnerability audit verified at 0 known vulnerabilities (`pnpm audit --prod`).
+
+---
+
 ## [0.1.1] - 2026-11-04
 
 ### Changed

@@ -123,11 +123,11 @@ export class AntigravityAdapter implements AgentAdapter {
     const rec = input as Record<string, unknown>;
     return Boolean(
       rec.conversationId ||
-        rec.conversation_id ||
-        rec.toolCall ||
-        rec.tool_call ||
-        rec.terminationReason ||
-        rec.termination_reason,
+      rec.conversation_id ||
+      rec.toolCall ||
+      rec.tool_call ||
+      rec.terminationReason ||
+      rec.termination_reason,
     );
   }
 

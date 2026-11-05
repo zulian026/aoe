@@ -49,13 +49,7 @@ export const FileChangesPanel: React.FC<FileChangesPanelProps> = ({
   const visibleChanges = fileChanges.slice(-maxEntries);
 
   return (
-    <Panel
-      title="FILE CHANGES"
-      metadata={summaryStr}
-      width={width}
-      theme={theme}
-      noColor={noColor}
-    >
+    <Panel title="FILE CHANGES" metadata={summaryStr} width={width} theme={theme} noColor={noColor}>
       <Box flexDirection="column" width="100%">
         {visibleChanges.length === 0 ? (
           <Box paddingY={0}>
@@ -90,9 +84,7 @@ export const FileChangesPanel: React.FC<FileChangesPanelProps> = ({
                 {change.evidence?.verifiedOnDisk && (
                   <Text color={successColor}> [verified on disk]</Text>
                 )}
-                {change.description && (
-                  <Text color={mutedColor}> — {change.description}</Text>
-                )}
+                {change.description && <Text color={mutedColor}> — {change.description}</Text>}
               </Box>
             );
           })

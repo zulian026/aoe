@@ -1,6 +1,6 @@
 # AOE (Agent Output Enhancement)
 
-[![CI](https://github.com/aoe-dev/aoe/actions/workflows/ci.yml/badge.svg)](https://github.com/aoe-dev/aoe/actions/workflows/ci.yml)
+[![CI](https://github.com/zulian026/aoe/actions/workflows/ci.yml/badge.svg)](https://github.com/zulian026/aoe/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Node: >=20](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org/)
 
@@ -96,6 +96,16 @@ AI coding agents (e.g. Claude Code, Gemini CLI, Cursor, and custom CLI agents) e
 npm install -g @zyanx04/cli
 ```
 
+### Direct Execution via npx
+
+```bash
+npx @zyanx04/cli doctor
+```
+
+> [!IMPORTANT]
+> Always execute via `npx @zyanx04/cli` or global `aoe` after installing `@zyanx04/cli`.
+> Do **NOT** invoke `npx aoe`, as the unqualified package `aoe` on the public npm registry belongs to an unrelated legacy package from 2017.
+
 ### Local Project Installation
 
 ```bash
@@ -157,6 +167,8 @@ aoe theme set high-contrast
 | ------------- | ---------------------------------------------------------- | ---------------------------------------------------------------- |
 | `aoe render`  | `cat events.jsonl \| aoe render [options]`                 | Renders canonical AOE JSONL events from standard input.          |
 | `aoe pipe`    | `cat agent.log \| aoe pipe [options]`                      | Adapts and renders raw agent telemetry from standard input.      |
+| `aoe bridge`  | `aoe bridge --event <name> [options]`                      | Non-blocking hook bridge translating agent lifecycle events.     |
+| `aoe sidecar` | `aoe sidecar [--socket <path> \| --listen]`                | Independent terminal sidecar monitoring live agent sessions.     |
 | `aoe theme`   | `aoe theme [list \| current \| show <name> \| set <name>]` | Manages active and installed terminal themes.                    |
 | `aoe doctor`  | `aoe doctor [--json]`                                      | Diagnoses environment, Node version, themes, config, and skills. |
 | `aoe skill`   | `aoe skill [show \| path]`                                 | Displays or resolves the location of `skills/aoe/SKILL.md`.      |
@@ -174,6 +186,7 @@ aoe theme set high-contrast
 
 | Agent / Input     | Adapter Flag             | Description                                                                 |
 | ----------------- | ------------------------ | --------------------------------------------------------------------------- |
+| **Antigravity**   | `--agent antigravity`    | Ingests Google Antigravity lifecycle events, tool calls, and state stores.  |
 | **Claude Code**   | `--agent claude-code`    | Ingests Claude Code CLI telemetry, hook events, and tool execution reports. |
 | **Gemini CLI**    | `--agent gemini-cli`     | Ingests Gemini CLI tool calls, system messages, and outputs.                |
 | **Generic JSONL** | `--agent generic-jsonl`  | Standard JSONL format with flexible schema mapping for custom agents.       |

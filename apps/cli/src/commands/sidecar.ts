@@ -25,8 +25,17 @@ export interface SidecarCommandOptions {
 
 /**
  * Searches for active AOE Unix Domain Sockets in designated runtime directories.
+ * Implements cross-platform safety for Windows named pipes and POSIX sockets.
  */
 export function discoverActiveSocket(customDir?: string): string | null {
+  if (process.platform === 'win32') {
+    // Windows named pipes (\\.\pipe\*) cannot be enumerated via fs.readdirSync.
+    // If a custom directory is specified, search it safely. Otherwise return null.
+    if (!customDir || !fs.existsSync(customDir)) {
+      return null;
+    }
+  }
+
   const candidates: string[] = [];
   if (customDir && fs.existsSync(customDir)) {
     candidates.push(customDir);
@@ -37,10 +46,15 @@ export function discoverActiveSocket(customDir?: string): string | null {
   if (process.env.XDG_RUNTIME_DIR && fs.existsSync(process.env.XDG_RUNTIME_DIR)) {
     candidates.push(process.env.XDG_RUNTIME_DIR);
   }
-  if (fs.existsSync('/tmp')) {
+  if (process.platform !== 'win32' && fs.existsSync('/tmp')) {
     candidates.push('/tmp');
   }
-  candidates.push(os.tmpdir());
+  try {
+    const tmp = os.tmpdir();
+    if (fs.existsSync(tmp)) {
+      candidates.push(tmp);
+    }
+  } catch {}
 
   const foundSockets: Array<{ path: string; mtimeMs: number }> = [];
 
@@ -48,11 +62,11 @@ export function discoverActiveSocket(customDir?: string): string | null {
     try {
       const files = fs.readdirSync(dir);
       for (const file of files) {
-        if (file.startsWith('aoe-') && file.endsWith('.sock')) {
+        if (file.startsWith('aoe-') && (file.endsWith('.sock') || file.endsWith('.ipc'))) {
           const fullPath = path.join(dir, file);
           try {
             const stat = fs.statSync(fullPath);
-            if (stat.isSocket()) {
+            if (typeof stat.isSocket === 'function' ? stat.isSocket() : true) {
               foundSockets.push({ path: fullPath, mtimeMs: stat.mtimeMs });
             }
           } catch {}
@@ -73,7 +87,9 @@ export function discoverActiveSocket(customDir?: string): string | null {
 export function registerSidecarCommand(program: Command): void {
   program
     .command('sidecar')
-    .description('Attach an independent terminal sidecar presentation layer to an active AOE session')
+    .description(
+      'Attach an independent terminal sidecar presentation layer to an active AOE session',
+    )
     .option('-s, --socket <path>', 'Explicit Unix Domain Socket path for IPC')
     .option('--session <id>', 'Attach to session by conversation ID')
     .option('--dir <path>', 'Custom directory to search for session sockets')
@@ -122,10 +138,7 @@ export async function executeSidecar(
   }
 
   const isInteractive =
-    !options.json &&
-    !options.once &&
-    !options.static &&
-    isInteractiveSuitable(customStdout);
+    !options.json && !options.once && !options.static && isInteractiveSuitable(customStdout);
 
   const mode = options.listen ? 'server' : 'client';
   const consumer = new SidecarConsumer({

@@ -112,9 +112,7 @@ export const CurrentTaskPanel: React.FC<CurrentTaskPanelProps> = ({
               ⚡ Executing:{' '}
             </Text>
             <Text color={primaryColor}>{activeTool.name}</Text>
-            {activeTool.description && (
-              <Text color={mutedColor}> — {activeTool.description}</Text>
-            )}
+            {activeTool.description && <Text color={mutedColor}> — {activeTool.description}</Text>}
           </Box>
         )}
 

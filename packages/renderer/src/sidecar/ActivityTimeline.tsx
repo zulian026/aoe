@@ -73,11 +73,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
       detail: tool.description,
       timestamp: tool.timestamp,
       status:
-        tool.status === 'completed'
-          ? 'completed'
-          : tool.status === 'failed'
-            ? 'failed'
-            : 'running',
+        tool.status === 'completed' ? 'completed' : tool.status === 'failed' ? 'failed' : 'running',
     });
   }
 
@@ -162,7 +158,8 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                 </Box>
                 {item.detail && (
                   <Text color={subtleColor} wrap="truncate-end">
-                    {' '}({item.detail})
+                    {' '}
+                    ({item.detail})
                   </Text>
                 )}
               </Box>

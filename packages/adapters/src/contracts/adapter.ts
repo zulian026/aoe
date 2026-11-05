@@ -2,7 +2,8 @@ import type { AoeEvent, ProtocolEnvelope } from '@zyanx04/protocol';
 import type { AdapterContext, AdapterDetectionResult } from './context.js';
 import type { AdapterSession } from './session.js';
 
-export type AgentKind = 'codex' | 'claude-code' | 'gemini-cli' | 'opencode' | 'generic' | 'antigravity';
+export type AgentKind =
+  'codex' | 'claude-code' | 'gemini-cli' | 'opencode' | 'generic' | 'antigravity';
 
 export type AdapterLifecycleState =
   'uninitialized' | 'detected' | 'initialized' | 'active' | 'stopping' | 'disposed' | 'error';

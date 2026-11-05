@@ -1,6 +1,6 @@
 {
   "name": "@zyanx04/adapters",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "Agent ingestion adapters converting CLI/agent telemetry to AOE Universal Protocol",
   "license": "MIT",
@@ -9,11 +9,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/aoe-dev/aoe.git",
+    "url": "https://github.com/zulian026/aoe.git",
     "directory": "packages/adapters"
   },
-  "homepage": "https://github.com/aoe-dev/aoe#readme",
-  "bugs": "https://github.com/aoe-dev/aoe/issues",
+  "homepage": "https://github.com/zulian026/aoe#readme",
+  "bugs": "https://github.com/zulian026/aoe/issues",
   "keywords": [
     "aoe",
     "adapters",
@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@zyanx04/protocol": "workspace:*",
-    "zod": "^3.24.2"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@zyanx04/core": "workspace:*",

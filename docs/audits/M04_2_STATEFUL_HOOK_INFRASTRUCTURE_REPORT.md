@@ -17,16 +17,16 @@ Because Antigravity executes each hook as an independent, ephemeral child shell 
 
 ### Final Verification Classification: `VERIFIED`
 
-| Verification Target | M04.1 Status | M04.2 Status | Verification Evidence |
-|---|---|---|---|
-| **Monotonic Event Sequencing Across Discrete Processes** | `FAILED` (reset to 0) | `VERIFIED` | 5 discrete subprocesses produced sequences 0..7 without reset or collision. |
-| **Cross-Process Task Continuity** | `FAILED` (lost on exit) | `VERIFIED` | Active task and task mapping persistent across distinct hook subprocesses. |
-| **Verification Evidence Integrity** | `FAILED` (in-memory boolean) | `VERIFIED` | Structured `VerificationEvidence` bound to specific task IDs with runner validation. |
-| **Anti-False-Positive Test Protection** | `FAILED` (vulnerable to `mkdir test`) | `VERIFIED` | Strictly rejected `mkdir test`, `cat test.txt`, `echo test`; prevented completion. |
-| **Explicit Hook Event Identification** | `FAILED` (guessed from payload) | `VERIFIED` | Required `--event <Name>`; rejected ambiguous and unknown events with `AdapterParsingError`. |
-| **UNIX Domain Socket Path Ceiling** | `FAILED` (risk of POSIX overflow) | `VERIFIED` | Deterministic SHA-256 truncation guaranteed path length <= 96 bytes. |
-| **Subprocess Stream Drainage & Clean Exit** | `NOT_VERIFIED` | `VERIFIED` | Stdout flushed before resolution; diagnostics isolated strictly to stderr. |
-| **Workspace Regression Integrity** | 355 tests passing | 371 tests passing | 49 test suites passed 100% with zero regressions across all 7 packages. |
+| Verification Target                                      | M04.1 Status                          | M04.2 Status      | Verification Evidence                                                                        |
+| -------------------------------------------------------- | ------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------- |
+| **Monotonic Event Sequencing Across Discrete Processes** | `FAILED` (reset to 0)                 | `VERIFIED`        | 5 discrete subprocesses produced sequences 0..7 without reset or collision.                  |
+| **Cross-Process Task Continuity**                        | `FAILED` (lost on exit)               | `VERIFIED`        | Active task and task mapping persistent across distinct hook subprocesses.                   |
+| **Verification Evidence Integrity**                      | `FAILED` (in-memory boolean)          | `VERIFIED`        | Structured `VerificationEvidence` bound to specific task IDs with runner validation.         |
+| **Anti-False-Positive Test Protection**                  | `FAILED` (vulnerable to `mkdir test`) | `VERIFIED`        | Strictly rejected `mkdir test`, `cat test.txt`, `echo test`; prevented completion.           |
+| **Explicit Hook Event Identification**                   | `FAILED` (guessed from payload)       | `VERIFIED`        | Required `--event <Name>`; rejected ambiguous and unknown events with `AdapterParsingError`. |
+| **UNIX Domain Socket Path Ceiling**                      | `FAILED` (risk of POSIX overflow)     | `VERIFIED`        | Deterministic SHA-256 truncation guaranteed path length <= 96 bytes.                         |
+| **Subprocess Stream Drainage & Clean Exit**              | `NOT_VERIFIED`                        | `VERIFIED`        | Stdout flushed before resolution; diagnostics isolated strictly to stderr.                   |
+| **Workspace Regression Integrity**                       | 355 tests passing                     | 371 tests passing | 49 test suites passed 100% with zero regressions across all 7 packages.                      |
 
 ---
 
@@ -48,6 +48,7 @@ Because Antigravity executes each hook as an independent, ephemeral child shell 
 ```
 
 **Flaws**:
+
 - Monotonic sequence violated: each hook spawned a new `AdapterSession` with sequence starting at 0.
 - State amnesia: tool outcomes recorded in one process disappeared when the child process terminated.
 - Fragile inference: heuristic payload inspection misclassified `PostToolUse` without errors as `PreToolUse`.
@@ -80,16 +81,20 @@ Because Antigravity executes each hook as an independent, ephemeral child shell 
 Implemented in `packages/adapters/src/agents/antigravity/state-store.ts`.
 
 ### 3.1 Persistence Contract
+
 Each Antigravity session is identified by its canonical `conversationId`. The store persists session state to:
+
 - State File: `${SESSION_DIR}/aoe-state-${safeId}.json`
 - Lock File: `${SESSION_DIR}/aoe-state-${safeId}.lock`
 
 Directory resolution priority:
+
 1. `AOE_SESSION_DIR` (environment override for isolation in tests and containers)
 2. `XDG_RUNTIME_DIR` (POSIX memory-backed `/run/user/<uid>`, ensuring high throughput and automatic cleanup)
 3. `/tmp` fallback
 
 ### 3.2 Atomic Locking & Concurrency Control
+
 - **Lock Acquisition**: Uses `fs.openSync(lockPath, 'wx')` (`O_CREAT | O_EXCL`) to guarantee mutual exclusion across concurrent hook subprocesses.
 - **Stale Lock Eviction**: If a previous process was killed unexpectedly (`SIGKILL`), locks older than 5,000ms are safely evicted.
 - **Atomic State Writes**: State is serialized to a PID-tagged temporary file (`${statePath}.tmp.${pid}.${Date.now()}`) and renamed atomically over the destination file.
@@ -127,6 +132,7 @@ Sequence numbers must be monotonically increasing and strictly unique across the
 Implemented in `packages/adapters/src/agents/antigravity/evidence.ts`.
 
 ### 5.1 Rejection of Naive Boolean Flags
+
 M04.1 identified that a boolean `session.metadata['tests_verified']` could be spoofed by any command containing the substring `"test"`. In M04.2, this is completely replaced with structured `VerificationEvidence`:
 
 ```typescript
@@ -142,13 +148,16 @@ export interface VerificationEvidence {
 ```
 
 ### 5.2 Strict Test Runner Classification
+
 `identifyTestRunner(commandLine)` employs strict matching rules:
+
 1. **Explicit Non-Test Utilities Blocklist**: Immediately rejects utilities even if their arguments include `"test"`, including:
    `mkdir`, `rmdir`, `rm`, `touch`, `cat`, `head`, `tail`, `more`, `less`, `nano`, `vim`, `echo`, `printf`, `ls`, `dir`, `find`, `grep`, `sed`, `awk`, `git`, `cd`, `pwd`, `cp`, `mv`, `chmod`, `chown`.
 2. **Package Manager Test Invocations**: Matches `npm`, `pnpm`, `yarn`, `bun` executing `test` / `t` while rejecting package manager subcommands like `install test`, `add test`, `remove test`.
 3. **Dedicated Test Frameworks**: Matches `vitest`, `jest`, `pytest`, `cargo test`, `go test`, `dotnet test`, `ctest`, `mvn test`, `gradlew test`.
 
 ### 5.3 Task-Bound Evidence Invariant
+
 - Verification evidence is strictly bound to the `taskId` of the active turn.
 - When Turn 1 runs `pnpm test` and passes, Turn 1 is verified.
 - When Turn 2 begins with a new `PreInvocation`, Turn 2 creates a new `taskId`.
@@ -159,13 +168,16 @@ export interface VerificationEvidence {
 ## 6. Explicit Hook Identification & Parsing Safety
 
 ### 6.1 Requirement for Explicit Hook Name
+
 In `apps/cli/src/commands/bridge.ts` and `AntigravityMapper`, heuristic guessing of event names from payload structure has been eliminated:
+
 - Hook commands MUST specify `--event <EventName>`.
 - Payloads may also include `hookEventName` / `hook_event_name`.
 - Any hook call lacking an event name or specifying an unallowed event immediately throws `AdapterParsingError` with the allowed event names:
   `SessionStart`, `PreInvocation`, `PreToolUse`, `PostToolUse`, `Stop`.
 
 ### 6.2 Disambiguation of `PostToolUse`
+
 In M04.1, a successful `PostToolUse` without an error field had identical structure to `PreToolUse`, causing incorrect progress resets. With explicit event enforcement, `PostToolUse` is always mapped to tool completion, progress update, file change detection, and verification evidence evaluation.
 
 ---
@@ -175,14 +187,18 @@ In M04.1, a successful `PostToolUse` without an error field had identical struct
 Implemented in `packages/adapters/src/agents/antigravity/ipc-transport.ts`.
 
 ### 7.1 POSIX Socket Byte Limits
+
 POSIX specifies `sockaddr_un.sun_path` length limits:
+
 - Linux: 108 bytes
 - macOS / BSD: 104 bytes
 
 Antigravity UUIDs (e.g. `f01aa833-4c56-4d85-bcee-3909147eaa15`) combined with runtime paths (`/run/user/1000/`) could exceed this ceiling.
 
 ### 7.2 Deterministic SHA-256 Truncation
+
 `resolveSocketPath(sessionId)` guarantees a maximum path length of **96 bytes**:
+
 1. Base runtime directory resolved (`XDG_RUNTIME_DIR`, `/tmp`, or `os.tmpdir()`).
 2. Candidate filename formatted: `aoe-${safeId}.sock`.
 3. If total byte length exceeds 96 bytes:
@@ -197,6 +213,7 @@ Antigravity UUIDs (e.g. `f01aa833-4c56-4d85-bcee-3909147eaa15`) combined with ru
 ## 8. Process Lifecycle, Stream Drainage, and Stderr Isolation
 
 In `apps/cli/src/commands/bridge.ts` and `runHookBridge`:
+
 1. **Stdout Drainage**: Ensured `stdoutStream.write()` completes via a promise before process termination:
    ```typescript
    await new Promise<void>((resolve) => {
@@ -221,12 +238,15 @@ In `apps/cli/src/commands/bridge.ts` and `runHookBridge`:
 ## 10. Test Matrix & Multi-Process Verification Evidence
 
 ### 10.1 Unit & Integration Suite (`vitest`)
+
 Full workspace test run executed via `pnpm test`:
+
 - **Total Test Files**: 49 passed / 49 (100%)
 - **Total Tests**: 371 passed / 371 (100%)
 - **Duration**: 43.64s
 
 Antigravity Adapter & Bridge Suite (`antigravity-adapter.test.ts`):
+
 - **Total Tests**: 34 passed / 34 (100%)
 - **Coverage**:
   - `SessionStart`, `PreInvocation`, `PreToolUse`, `PostToolUse`, `Stop` normalization: PASS
@@ -247,6 +267,7 @@ Antigravity Adapter & Bridge Suite (`antigravity-adapter.test.ts`):
   - Stream drainage and stderr diagnostics isolation: PASS
 
 ### 10.2 Real Multi-Process Subprocess Verification
+
 Executed using compiled binary `node apps/cli/dist/bin.js bridge`:
 
 ```
@@ -265,6 +286,7 @@ Status: MULTI_PROCESS_VERIFICATION_SUCCESS
 ```
 
 ### 10.3 Anti-False-Positive Subprocess Verification
+
 Executed with `run_command: mkdir test`:
 
 ```

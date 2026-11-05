@@ -49,7 +49,7 @@ describe('E2E CLI Subprocess Execution', () => {
   it('executes aoe --version with exit code 0', async () => {
     const res = await runBinary(['--version']);
     expect(res.code).toBe(0);
-    expect(res.stdout).toContain('AOE CLI v0.1.1');
+    expect(res.stdout).toContain('AOE CLI v0.1.2');
   });
 
   it('executes aoe --help with exit code 0', async () => {

@@ -48,7 +48,7 @@ export function resolveThemeColor(
 
   // Fallback to legacy flat token access if present
   if (theme.tokens && token in theme.tokens) {
-    const val = (theme.tokens as Record<string, unknown>)[token];
+    const val = (theme.tokens as Record<string, unknown>)[token as string];
     if (typeof val === 'string') return val;
   }
 

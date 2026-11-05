@@ -8,7 +8,7 @@ export const LogEmittedPayloadSchema = z.object({
   stream: z.enum(['stdout', 'stderr']).optional(),
   source: z.string().optional(),
   taskId: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type LogEmittedPayload = z.infer<typeof LogEmittedPayloadSchema>;

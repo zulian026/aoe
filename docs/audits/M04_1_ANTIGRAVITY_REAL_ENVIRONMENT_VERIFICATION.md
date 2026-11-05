@@ -11,7 +11,7 @@
 
 Audit M04.1 melakukan investigasi mendalam, pengujian multi-proses, dan verifikasi keamanan terhadap implementasi Antigravity Adapter dan Hook Bridge yang diperkenalkan pada Milestone M04.
 
-Meskipun pengujian unit dan fixture (`vitest`) berhasil 100% (355 pengujian lulus), audit terhadap perilaku eksekusi nyata membuktikan adanya perbedaan fundamental antara eksekusi *in-memory* di lingkungan tes dibandingkan dengan model proses Antigravity di lingkungan nyata:
+Meskipun pengujian unit dan fixture (`vitest`) berhasil 100% (355 pengujian lulus), audit terhadap perilaku eksekusi nyata membuktikan adanya perbedaan fundamental antara eksekusi _in-memory_ di lingkungan tes dibandingkan dengan model proses Antigravity di lingkungan nyata:
 
 > [!IMPORTANT]
 > **Temuan Kunci (Cross-Process State Dissociation)**:
@@ -24,32 +24,34 @@ Laporan ini mengkategorikan setiap aspek integrasi secara transparan dan jujur, 
 ## 2. Categorized Verification Summary
 
 Setiap kemampuan dan klaim diklasifikasikan ke dalam 5 status kanonikal:
+
 - `VERIFIED` — Dibuktikan melalui eksekusi nyata pada runtime CLI.
 - `CODE_VERIFIED` — Dibuktikan melalui inspeksi logika kode sumber statis.
 - `FIXTURE_ONLY` — Terverifikasi hanya di dalam memori runner pengujian tunggal.
 - `NOT_VERIFIED` — Belum dapat dibuktikan pada runtime live.
 - `FAILED` — Mengalami kegagalan logika atau divergensi spesifikasi.
 
-| Domain / Aspek | Kategori | Ringkasan Temuan |
-|---|---|---|
-| **Pendaftaran Adapter Antigravity** | `VERIFIED` | Terdaftar pada `AdapterManager`, diverifikasi oleh `aoe doctor` dan `aoe pipe`. |
-| **Parsing Payload camelCase** | `CODE_VERIFIED` | Mendukung penuh properti `conversationId`, `workspacePaths`, `toolCall`. |
-| **Sanitasi Kredensial & Secrets** | `CODE_VERIFIED` | API keys (`sk-`, `ghp-`, dll.) dan token Bearer disensor menjadi `[REDACTED]`. |
-| **Proteksi Internal Reasoning** | `CODE_VERIFIED` | Tag `<thought>` dan blok penalaran dibersihkan dari nama task dan payload. |
-| **Validasi Skema Protokol v1.0.0** | `CODE_VERIFIED` | Setiap event melalui `validateEvent()` dari `@zyanx04/protocol`. |
-| **Kontrak Respons Hook Antigravity** | `VERIFIED` | Respons kontrol valid (`{"decision":"allow"}`, `{}`, dll.) dikembalikan di stdout. |
-| **Koneksi IPC Non-Blocking** | `VERIFIED` | Socket UDS mengirim data dalam <150ms; fallback ke safe-exit jika socket mati. |
-| **Monotonik Sequence Lintas-Hook** | `FAILED` | Reset ke `seq: 0` pada setiap proses hook baru karena sesi in-memory hilang. |
-| **Preservasi State `tests_verified`** | `FAILED` | State hilang saat proses `PostToolUse` keluar; `Stop` tidak melihat bukti verifikasi. |
-| **Inferensi Hook Heuristik (Tanpa `--event`)** | `FAILED` | `PostToolUse` sukses tanpa error disalahartikan sebagai `PreToolUse`. |
-| **Keamanan Path Traversal Socket** | `CODE_VERIFIED` | Karakter non-alphanumeric diganti `_`; input kosong (`""`) perlu penanganan khusus. |
-| **Batas Panjang Socket UNIX** | `CODE_VERIFIED` | Berisiko meluap jika ID percakapan > 50 karakter pada direktori path panjang. |
+| Domain / Aspek                                 | Kategori        | Ringkasan Temuan                                                                      |
+| ---------------------------------------------- | --------------- | ------------------------------------------------------------------------------------- |
+| **Pendaftaran Adapter Antigravity**            | `VERIFIED`      | Terdaftar pada `AdapterManager`, diverifikasi oleh `aoe doctor` dan `aoe pipe`.       |
+| **Parsing Payload camelCase**                  | `CODE_VERIFIED` | Mendukung penuh properti `conversationId`, `workspacePaths`, `toolCall`.              |
+| **Sanitasi Kredensial & Secrets**              | `CODE_VERIFIED` | API keys (`sk-`, `ghp-`, dll.) dan token Bearer disensor menjadi `[REDACTED]`.        |
+| **Proteksi Internal Reasoning**                | `CODE_VERIFIED` | Tag `<thought>` dan blok penalaran dibersihkan dari nama task dan payload.            |
+| **Validasi Skema Protokol v1.0.0**             | `CODE_VERIFIED` | Setiap event melalui `validateEvent()` dari `@zyanx04/protocol`.                      |
+| **Kontrak Respons Hook Antigravity**           | `VERIFIED`      | Respons kontrol valid (`{"decision":"allow"}`, `{}`, dll.) dikembalikan di stdout.    |
+| **Koneksi IPC Non-Blocking**                   | `VERIFIED`      | Socket UDS mengirim data dalam <150ms; fallback ke safe-exit jika socket mati.        |
+| **Monotonik Sequence Lintas-Hook**             | `FAILED`        | Reset ke `seq: 0` pada setiap proses hook baru karena sesi in-memory hilang.          |
+| **Preservasi State `tests_verified`**          | `FAILED`        | State hilang saat proses `PostToolUse` keluar; `Stop` tidak melihat bukti verifikasi. |
+| **Inferensi Hook Heuristik (Tanpa `--event`)** | `FAILED`        | `PostToolUse` sukses tanpa error disalahartikan sebagai `PreToolUse`.                 |
+| **Keamanan Path Traversal Socket**             | `CODE_VERIFIED` | Karakter non-alphanumeric diganti `_`; input kosong (`""`) perlu penanganan khusus.   |
+| **Batas Panjang Socket UNIX**                  | `CODE_VERIFIED` | Berisiko meluap jika ID percakapan > 50 karakter pada direktori path panjang.         |
 
 ---
 
 ## 3. Source Code Audit
 
 ### A. File yang Diperiksa
+
 1. `packages/adapters/src/agents/antigravity/schema.ts`
 2. `packages/adapters/src/agents/antigravity/mapper.ts`
 3. `packages/adapters/src/agents/antigravity/adapter.ts`
@@ -60,8 +62,10 @@ Setiap kemampuan dan klaim diklasifikasikan ke dalam 5 status kanonikal:
 8. `plugins/aoe-bridge/hooks.json`
 
 ### B. Audit Lifecycle & State Tracking
+
 - **Masalah Pemisahan Proses**:
   Kode pada `hook-bridge.ts` membuat sesi baru pada setiap eksekusi:
+
   ```ts
   // packages/adapters/src/agents/antigravity/hook-bridge.ts (lines 142-152)
   const session = options.session ?? createAdapterSession({
@@ -71,6 +75,7 @@ Setiap kemampuan dan klaim diklasifikasikan ke dalam 5 status kanonikal:
     workingDirectory: ...
   });
   ```
+
   Di dalam runner unit test (`antigravity-adapter.test.ts`), objek `session` yang sama diteruskan berulang kali, sehingga sequence bertambah secara benar (`0, 1, 2, ...`). Namun saat dipanggil melalui CLI `aoe bridge` oleh Antigravity, setiap hook adalah proses OS baru, sehingga `session.nextSequence()` selalu mulai dari `0`.
 
 - **Masalah Inferensi Heuristik Event**:
@@ -90,6 +95,7 @@ Setiap kemampuan dan klaim diklasifikasikan ke dalam 5 status kanonikal:
 ## 4. Security & Robustness Review
 
 ### 1. Path Traversal melalui Session Identifier
+
 - **Status**: `CODE_VERIFIED` (Aman, dengan catatan perbaikan kecil).
 - **Analisis**:
   Pada `packages/adapters/src/agents/antigravity/ipc-transport.ts`:
@@ -101,22 +107,26 @@ Setiap kemampuan dan klaim diklasifikasikan ke dalam 5 status kanonikal:
 - **Rekomendasi**: Gunakan `(sessionId && sessionId.trim()) ? sessionId.replace(...) : 'default'`.
 
 ### 2. Socket Path Length Buffer Overflow
+
 - **Status**: `CODE_VERIFIED` (Berisiko pada Linux/macOS).
 - **Analisis**:
   Struktur `sockaddr_un.sun_path` di Linux memiliki batas 108 byte (104 byte di macOS). Jika `XDG_RUNTIME_DIR` berada di path panjang (misal `/run/user/1000/containers/...`) dan `conversationId` berupa UUID atau hash panjang, socket path dapat melampaui batas byte dan gagal saat `socket.connect()`.
 - **Rekomendasi**: Truncate atau gunakan hash deterministik (misal 16 karakter pertama dari sha256) jika panjang ID melebihi 32 karakter.
 
 ### 3. Command Injection
+
 - **Status**: `CODE_VERIFIED` (Aman).
 - **Analisis**:
   Bridge tidak pernah menyusun perintah shell secara dinamis menggunakan nilai dari payload. Payload hanya dibaca via `stdin` dan dikirim melalui protokol serialisasi data murni via `node:net`.
 
 ### 4. Secret Leakage & Internal Reasoning Exposure
+
 - **Status**: `CODE_VERIFIED` (Aman).
 - **Analisis**:
   Fungsi `sanitizeAgentText()` pada `mapper.ts` secara aktif membuang tag `<thought>`, `<scratchpad>`, `<antThinking>`, dan menyensor token API (`sk-`, `ghp-`, dll.).
 
 ### 5. False-Positive Test Verification (`\btest\b`)
+
 - **Status**: `FAILED` (Logika terlalu longgar).
 - **Analisis**:
   Pada `mapper.ts` baris 266:
@@ -128,10 +138,11 @@ Setiap kemampuan dan klaim diklasifikasikan ke dalam 5 status kanonikal:
   Pola `\btest\b` mencocokkan kata sembarang seperti `mkdir test`, `cat test.txt`, atau `git checkout test`, yang berpotensi memicu klaim palsu bahwa pengujian telah diverifikasi.
 - **Rekomendasi**: Batasi ekspresi reguler hanya pada eksekusi test runner:
   ```ts
-  /(?:^|\s)(?:npm|pnpm|yarn|bun)\s+test\b|\b(?:vitest|jest|pytest|cargo\s+test|go\s+test)\b/i
+  /(?:^|\s)(?:npm|pnpm|yarn|bun)\s+test\b|\b(?:vitest|jest|pytest|cargo\s+test|go\s+test)\b/i;
   ```
 
 ### 6. Proses Hanging Akibat Open Stdin Handle
+
 - **Status**: `CODE_VERIFIED` (Berisiko).
 - **Analisis**:
   Pada `apps/cli/src/commands/bridge.ts`, fungsi `runHookBridge` tidak secara eksplisit memanggil `process.exit(0)`. Jika proses induk (Antigravity) tidak menutup stream stdin setelah mengirim payload, event loop Node.js dapat tetap berjalan hingga batas waktu timeout terlampaui.
@@ -184,6 +195,7 @@ Total received events over socket: 8
 ```
 
 ### Hasil Verifikasi:
+
 - **Respon Kontrol Hook**: `VERIFIED` — Setiap subproses mengembalikan format JSON yang valid ke stdout dan keluar dengan exit code `0`.
 - **Pengiriman ke Consumer IPC**: `VERIFIED` — Seluruh 8 event berhasil diterima oleh server socket Unix Domain.
 - **Sequencing Lintas Proses**: `FAILED` — Nomor urut sequence terpecah di setiap subproses baru.
@@ -193,10 +205,10 @@ Total received events over socket: 8
 
 ## 7. Recommendations for Milestone M05
 
-Untuk mencapai integrasi level *Production-Ready*, berikut adalah perbaikan arsitektural yang diwajibkan untuk Milestone M05:
+Untuk mencapai integrasi level _Production-Ready_, berikut adalah perbaikan arsitektural yang diwajibkan untuk Milestone M05:
 
 1. **Stateful IPC Server Sequencing (Prioritas Tinggi)**:
-   - Karena subproses hook Antigravity bersifat *ephemeral*, tanggung jawab penomoran urut (`sequence`) dan pelacakan state verifikasi (`tests_verified`) harus dipindahkan ke **sisi penerima IPC (Daemon/Renderer)** atau disimpan dalam berkas spool sesi lokal ringan (`/tmp/aoe-state-${sessionId}.json`).
+   - Karena subproses hook Antigravity bersifat _ephemeral_, tanggung jawab penomoran urut (`sequence`) dan pelacakan state verifikasi (`tests_verified`) harus dipindahkan ke **sisi penerima IPC (Daemon/Renderer)** atau disimpan dalam berkas spool sesi lokal ringan (`/tmp/aoe-state-${sessionId}.json`).
 2. **Koreksi Regex Test Detection**:
    - Ubah pola `\btest\b` agar hanya mencocokkan perintah eksekusi test runner riil dan menghindari false positive seperti `mkdir test`.
 3. **Penegakan Parameter Wajib `--event`**:

@@ -1,36 +1,39 @@
 {
   "name": "aoe-workspace",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aoe-dev/aoe.git"
+    "url": "https://github.com/zulian026/aoe.git"
   },
-  "homepage": "https://github.com/aoe-dev/aoe#readme",
-  "bugs": "https://github.com/aoe-dev/aoe/issues",
+  "homepage": "https://github.com/zulian026/aoe#readme",
+  "bugs": "https://github.com/zulian026/aoe/issues",
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
   },
+  "packageManager": "pnpm@9.15.9",
   "scripts": {
-    "build": "tsc -b && node -e \"const fs = require('fs'); fs.cpSync('skills', 'apps/cli/skills', { recursive: true });\"",
+    "build": "tsc -b tsconfig.build.json && pnpm --filter @zyanx04/cli build",
     "benchmark": "node scripts/benchmark.js",
-    "clean": "pnpm -r exec rm -rf dist *.tsbuildinfo tsconfig.tsbuildinfo && node -e \"const fs = require('fs'); fs.rmSync('apps/cli/skills', { recursive: true, force: true });\"",
+    "clean": "node -e \"const fs = require('fs'); ['packages', 'apps'].forEach(d => fs.readdirSync(d).forEach(p => { const dir = d + '/' + p; fs.rmSync(dir + '/dist', { recursive: true, force: true }); try { fs.readdirSync(dir).filter(f => f.endsWith('.tsbuildinfo')).forEach(f => fs.unlinkSync(dir + '/' + f)); } catch {} })); fs.rmSync('apps/cli/skills', { recursive: true, force: true });\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "pnpm -r exec tsc --noEmit"
   },
   "devDependencies": {
+    "@changesets/cli": "^3.0.3",
     "@eslint/js": "^9.20.0",
     "@types/node": "^22.13.4",
     "eslint": "^9.20.1",
     "prettier": "^3.5.1",
+    "tsup": "^9.0.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.24.1",
     "vitest": "^3.0.5"

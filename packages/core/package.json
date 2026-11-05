@@ -1,6 +1,6 @@
 {
   "name": "@zyanx04/core",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "Core state management, event processing, and lifecycle engine for AOE",
   "license": "MIT",
@@ -9,11 +9,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/aoe-dev/aoe.git",
+    "url": "https://github.com/zulian026/aoe.git",
     "directory": "packages/core"
   },
-  "homepage": "https://github.com/aoe-dev/aoe#readme",
-  "bugs": "https://github.com/aoe-dev/aoe/issues",
+  "homepage": "https://github.com/zulian026/aoe#readme",
+  "bugs": "https://github.com/zulian026/aoe/issues",
   "keywords": [
     "aoe",
     "core",

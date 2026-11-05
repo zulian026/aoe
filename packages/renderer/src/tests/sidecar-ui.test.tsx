@@ -181,9 +181,7 @@ describe('Sidecar UI Presentation Components', () => {
         },
       });
 
-      const output = renderToString(
-        <CurrentTaskPanel task={snap.tasks['t2']} width={80} />,
-      );
+      const output = renderToString(<CurrentTaskPanel task={snap.tasks['t2']} width={80} />);
 
       expect(output).toContain('Refactor Architecture');
       expect(output).toContain('qualitative status');
@@ -210,9 +208,7 @@ describe('Sidecar UI Presentation Components', () => {
         },
       });
 
-      const output = renderToString(
-        <CurrentTaskPanel task={snap.tasks['t_fail']} width={80} />,
-      );
+      const output = renderToString(<CurrentTaskPanel task={snap.tasks['t_fail']} width={80} />);
 
       expect(output).toContain('Deploy Worker');
       expect(output).toContain('Error [ERR_TIMEOUT]: Connection timed out during deployment');
@@ -324,9 +320,7 @@ describe('Sidecar UI Presentation Components', () => {
   describe('FileChangesPanel', () => {
     it('renders created, modified, deleted counts and file paths', () => {
       const snap = createMockSnapshot();
-      const output = renderToString(
-        <FileChangesPanel fileChanges={snap.fileChanges} width={80} />,
-      );
+      const output = renderToString(<FileChangesPanel fileChanges={snap.fileChanges} width={80} />);
 
       expect(output).toContain('FILE CHANGES');
       expect(output).toContain('1 created, 1 modified');

@@ -20,7 +20,7 @@ export const AntigravityCommonFieldsSchema = z.object({
 
 export const AntigravityToolCallSchema = z.object({
   name: z.string().min(1, 'Tool name is required'),
-  args: z.record(z.unknown()).default({}),
+  args: z.record(z.string(), z.unknown()).default({}),
 });
 
 export const AntigravitySessionStartPayloadSchema = AntigravityCommonFieldsSchema.extend({
@@ -59,7 +59,7 @@ export const AntigravityStopPayloadSchema = AntigravityCommonFieldsSchema.extend
   error: z.unknown().optional(),
   fullyIdle: z.boolean().optional(),
   fully_idle: z.boolean().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const AntigravityHookPayloadSchema = z.union([

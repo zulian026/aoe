@@ -8,7 +8,7 @@ export const TaskStartedPayloadSchema = z.object({
   description: z.string().optional(),
   parentTaskId: z.string().optional(),
   depth: z.number().int().nonnegative().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type TaskStartedPayload = z.infer<typeof TaskStartedPayloadSchema>;

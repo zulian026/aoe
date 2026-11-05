@@ -1,9 +1,5 @@
 export type SidecarConnectionStatus =
-  | 'idle'
-  | 'connecting'
-  | 'connected'
-  | 'reconnecting'
-  | 'closed';
+  'idle' | 'connecting' | 'connected' | 'reconnecting' | 'closed';
 
 export interface SidecarProgress {
   completedWork: number;

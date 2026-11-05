@@ -282,9 +282,10 @@ export class SidecarReadModel {
     if (currentWork) {
       const activity: SidecarToolActivity = {
         name: currentWork,
-        status: currentWork.includes('finished') || currentWork.includes('completed')
-          ? 'completed'
-          : 'executing',
+        status:
+          currentWork.includes('finished') || currentWork.includes('completed')
+            ? 'completed'
+            : 'executing',
         timestamp: event.timestamp,
         taskId,
         description,

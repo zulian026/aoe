@@ -18,32 +18,32 @@ Unlike M04 and M04.2 which validated logic via in-process fixtures and synthetic
 
 ### Final Classification: `VERIFIED`
 
-| Integration Target | Classification | Actual Verification Evidence |
-|---|---|---|
-| **Antigravity Hook Invocation** | `VERIFIED` | 12 live hook child processes spawned by Antigravity engine across the turn. |
-| **Authentic Payload Reception** | `VERIFIED` | Captured real camelCase JSON (`conversationId`, `stepIdx`, `toolCall`, `workspacePaths`). |
-| **Real-Time IPC Event Streaming** | `VERIFIED` | 14 Protocol v1.0.0 events received over Unix socket `/ipc.sock` by independent listener. |
-| **Monotonic Event Sequencing** | `VERIFIED` | Sequences `0..13` strictly continuous across 12 distinct child shell processes. |
-| **Stateful Turn & Task Tracking** | `VERIFIED` | `AntigravitySessionStore` tracked `turn_0` through `turn_3` with atomic locking and zero resets. |
-| **Control Response Non-Interference** | `VERIFIED` | Antigravity received valid JSON (`{"decision":"allow"}`, `{}`, `{"decision":""}`); turn completed cleanly with exit code 0. |
-| **Stderr Isolation & Cleanliness** | `VERIFIED` | 0 bytes written to stderr across all 12 hook invocations; zero pollution of control streams. |
-| **Failure & Edge-Case Resilience** | `VERIFIED` | 6/6 failure scenarios passed (IPC dead, corrupt JSON, unknown event, corrupt state, user cancel). |
-| **Zero User-Config Pollution** | `VERIFIED` | Executed in fully isolated workspace; global configs (`~/.gemini/config/`) completely untouched. |
+| Integration Target                    | Classification | Actual Verification Evidence                                                                                                |
+| ------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Antigravity Hook Invocation**       | `VERIFIED`     | 12 live hook child processes spawned by Antigravity engine across the turn.                                                 |
+| **Authentic Payload Reception**       | `VERIFIED`     | Captured real camelCase JSON (`conversationId`, `stepIdx`, `toolCall`, `workspacePaths`).                                   |
+| **Real-Time IPC Event Streaming**     | `VERIFIED`     | 14 Protocol v1.0.0 events received over Unix socket `/ipc.sock` by independent listener.                                    |
+| **Monotonic Event Sequencing**        | `VERIFIED`     | Sequences `0..13` strictly continuous across 12 distinct child shell processes.                                             |
+| **Stateful Turn & Task Tracking**     | `VERIFIED`     | `AntigravitySessionStore` tracked `turn_0` through `turn_3` with atomic locking and zero resets.                            |
+| **Control Response Non-Interference** | `VERIFIED`     | Antigravity received valid JSON (`{"decision":"allow"}`, `{}`, `{"decision":""}`); turn completed cleanly with exit code 0. |
+| **Stderr Isolation & Cleanliness**    | `VERIFIED`     | 0 bytes written to stderr across all 12 hook invocations; zero pollution of control streams.                                |
+| **Failure & Edge-Case Resilience**    | `VERIFIED`     | 6/6 failure scenarios passed (IPC dead, corrupt JSON, unknown event, corrupt state, user cancel).                           |
+| **Zero User-Config Pollution**        | `VERIFIED`     | Executed in fully isolated workspace; global configs (`~/.gemini/config/`) completely untouched.                            |
 
 ---
 
 ## 2. Environment & Runtime Inspection
 
-| Property | Value / Observation |
-|---|---|
-| **Antigravity Binary** | `/home/zyan/.local/bin/agy` |
-| **Antigravity Version** | `1.5.0` |
-| **Host Environment** | Linux x86_64, Node.js `v26.13.0`, pnpm `10.28.2` |
-| **Parent Process Tree** | `kitty(2240) ─── zsh(51518) ─── agy(52337)` |
-| **Model In Use** | `gemini-3.8-flash-high` |
-| **AOE CLI Engine** | `/home/zyan/Projects/aoe/apps/cli/dist/bin.js` (Protocol v1.0.0) |
+| Property                    | Value / Observation                                                  |
+| --------------------------- | -------------------------------------------------------------------- |
+| **Antigravity Binary**      | `/home/zyan/.local/bin/agy`                                          |
+| **Antigravity Version**     | `1.5.0`                                                              |
+| **Host Environment**        | Linux x86_64, Node.js `v26.13.0`, pnpm `10.28.2`                     |
+| **Parent Process Tree**     | `kitty(2240) ─── zsh(51518) ─── agy(52337)`                          |
+| **Model In Use**            | `gemini-3.8-flash-high`                                              |
+| **AOE CLI Engine**          | `/home/zyan/Projects/aoe/apps/cli/dist/bin.js` (Protocol v1.0.0)     |
 | **Customization Discovery** | Verified via `agy plugin validate` (`hooks 1 · ✔ Validation passed`) |
-| **User Global Config** | `~/.gemini/antigravity-cli/settings.json` preserved intact |
+| **User Global Config**      | `~/.gemini/antigravity-cli/settings.json` preserved intact           |
 
 ---
 
@@ -116,25 +116,26 @@ An isolated, disposable workspace was provisioned to execute the live integratio
 ## 4. Live Hook Execution Trace
 
 ### Test Scenario
+
 Prompt executed:
 `Create a file named hello-live.txt with content 'live-integration-verified'`
 
 ### Chronological Execution Timeline
 
-| # | Hook Event | Step / Context | Exit Code | Stdout (Control Response) | Stderr |
-|---|---|---|---|---|---|
-| 1 | `SessionStart` | Session init (`53f49b96-8b95-4305-90f8-a3182521e1f9`) | `0` | `{"injectSteps":[]}` | 0 bytes |
-| 2 | `PreInvocation` | Invocation #0 (initial turn prompt) | `0` | `{"injectSteps":[],"terminationBehavior":""}` | 0 bytes |
-| 3 | `PreToolUse` | Step #2: `read_file` (`Path: .../skills/aoe/SKILL.md`) | `0` | `{"decision":"allow"}` | 0 bytes |
-| 4 | `PostToolUse` | Step #2: `read_file` finished | `0` | `{}` | 0 bytes |
-| 5 | `PreInvocation` | Invocation #1 (post-skill planning) | `0` | `{"injectSteps":[],"terminationBehavior":""}` | 0 bytes |
-| 6 | `PreToolUse` | Step #4: `write_file` (`Path: .../hello-live.txt`) | `0` | `{"decision":"allow"}` | 0 bytes |
-| 7 | `PostToolUse` | Step #4: `write_file` finished (`action: CREATED`) | `0` | `{}` | 0 bytes |
-| 8 | `PreInvocation` | Invocation #2 (verification step) | `0` | `{"injectSteps":[],"terminationBehavior":""}` | 0 bytes |
-| 9 | `PreToolUse` | Step #6: `read_file` (`Path: .../hello-live.txt`) | `0` | `{"decision":"allow"}` | 0 bytes |
-| 10 | `PostToolUse` | Step #6: `read_file` finished (file verified) | `0` | `{}` | 0 bytes |
-| 11 | `PreInvocation` | Invocation #3 (final summary generation) | `0` | `{"injectSteps":[],"terminationBehavior":""}` | 0 bytes |
-| 12 | `Stop` | Execution finished with `NO_TOOL_CALL` | `0` | `{"decision":""}` | 0 bytes |
+| #   | Hook Event      | Step / Context                                         | Exit Code | Stdout (Control Response)                     | Stderr  |
+| --- | --------------- | ------------------------------------------------------ | --------- | --------------------------------------------- | ------- |
+| 1   | `SessionStart`  | Session init (`53f49b96-8b95-4305-90f8-a3182521e1f9`)  | `0`       | `{"injectSteps":[]}`                          | 0 bytes |
+| 2   | `PreInvocation` | Invocation #0 (initial turn prompt)                    | `0`       | `{"injectSteps":[],"terminationBehavior":""}` | 0 bytes |
+| 3   | `PreToolUse`    | Step #2: `read_file` (`Path: .../skills/aoe/SKILL.md`) | `0`       | `{"decision":"allow"}`                        | 0 bytes |
+| 4   | `PostToolUse`   | Step #2: `read_file` finished                          | `0`       | `{}`                                          | 0 bytes |
+| 5   | `PreInvocation` | Invocation #1 (post-skill planning)                    | `0`       | `{"injectSteps":[],"terminationBehavior":""}` | 0 bytes |
+| 6   | `PreToolUse`    | Step #4: `write_file` (`Path: .../hello-live.txt`)     | `0`       | `{"decision":"allow"}`                        | 0 bytes |
+| 7   | `PostToolUse`   | Step #4: `write_file` finished (`action: CREATED`)     | `0`       | `{}`                                          | 0 bytes |
+| 8   | `PreInvocation` | Invocation #2 (verification step)                      | `0`       | `{"injectSteps":[],"terminationBehavior":""}` | 0 bytes |
+| 9   | `PreToolUse`    | Step #6: `read_file` (`Path: .../hello-live.txt`)      | `0`       | `{"decision":"allow"}`                        | 0 bytes |
+| 10  | `PostToolUse`   | Step #6: `read_file` finished (file verified)          | `0`       | `{}`                                          | 0 bytes |
+| 11  | `PreInvocation` | Invocation #3 (final summary generation)               | `0`       | `{"injectSteps":[],"terminationBehavior":""}` | 0 bytes |
+| 12  | `Stop`          | Execution finished with `NO_TOOL_CALL`                 | `0`       | `{"decision":""}`                             | 0 bytes |
 
 **Antigravity Agent Final Output**:
 `**Create hello-live.txt** — [COMPLETED]: Created hello-live.txt with content live-integration-verified. Verified file creation and content integrity.` (Exit Code: 0).
@@ -144,6 +145,7 @@ Prompt executed:
 ## 5. Authentic Sanitized Payloads Received from Antigravity
 
 ### 5.1 `SessionStart`
+
 ```json
 {
   "artifactDirectoryPath": "/home/zyan/.gemini/antigravity-cli/brain/53f49b96-8b95-4305-90f8-a3182521e1f9",
@@ -156,6 +158,7 @@ Prompt executed:
 ```
 
 ### 5.2 `PreToolUse` (`write_file`)
+
 ```json
 {
   "conversationId": "53f49b96-8b95-4305-90f8-a3182521e1f9",
@@ -174,6 +177,7 @@ Prompt executed:
 ```
 
 ### 5.3 `PostToolUse` (`write_file`)
+
 ```json
 {
   "conversationId": "53f49b96-8b95-4305-90f8-a3182521e1f9",
@@ -193,6 +197,7 @@ Prompt executed:
 ```
 
 ### 5.4 `Stop`
+
 ```json
 {
   "conversationId": "53f49b96-8b95-4305-90f8-a3182521e1f9",
@@ -230,6 +235,7 @@ The independent IPC listener recorded 14 distinct Protocol v1.0.0 events deliver
 ```
 
 ### Key Protocol Invariants Verified
+
 1. **Monotonic Sequences**: Continuous from `0` through `13` without a single reset, gap, or duplicate.
 2. **File Change Evidence**: `file.changed` accurately emitted with `action: CREATED` and `path: .../hello-live.txt`.
 3. **Anti-False-Positive Invariant Preserved**: Even though Antigravity succeeded in writing the file, `task.completed` with `verified: true` was **NOT** fabricated because no test runner verified the turn. Instead, `task.updated (warning)` was emitted, preserving verification truthfulness.
@@ -285,20 +291,21 @@ Final state persisted at `session-store/aoe-state-53f49b96-8b95-43_5d31de392a188
 
 All failure and edge-case scenarios were tested against the hardened runtime:
 
-| Test Scenario | Injection | Expected Behavior | Observed Result | Status |
-|---|---|---|---|---|
-| **IPC Consumer Unavailable** | Target socket does not exist (`/tmp/dead.sock`) | Non-blocking fallback; exit code 0; return canonical JSON | Returned `{"injectSteps":[]}`, duration <20ms | `VERIFIED` |
-| **Malformed JSON Payload** | Unparseable stdin: `{ corrupt json payload !!` | Log warning to stderr; return canonical allow; exit code 0 | Warning logged to stderr; returned `{"decision":"allow"}` | `VERIFIED` |
-| **Unknown Hook Event** | Invalid event: `--event UnknownInvalidEvent` | Log error to stderr; return safe `{}`; exit code 0 | Error logged to stderr; returned `{}` | `VERIFIED` |
-| **State File Missing** | Fresh session with no pre-existing state | Initialize default session state safely; allocate seq 0 | Initialized cleanly; allocated sequence 0 | `VERIFIED` |
-| **Corrupted State File** | State file contains garbage bytes | Evict / fallback safely without process termination | Handled safely with exit code 0 | `VERIFIED` |
-| **User Cancellation** | `terminationReason: "USER_CANCELED"` | Map to `task.failed (USER_CANCELED)` & `session.ended (cancelled)` | Emitted cancelled events; returned `{"decision":""}` | `VERIFIED` |
+| Test Scenario                | Injection                                       | Expected Behavior                                                  | Observed Result                                           | Status     |
+| ---------------------------- | ----------------------------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------- | ---------- |
+| **IPC Consumer Unavailable** | Target socket does not exist (`/tmp/dead.sock`) | Non-blocking fallback; exit code 0; return canonical JSON          | Returned `{"injectSteps":[]}`, duration <20ms             | `VERIFIED` |
+| **Malformed JSON Payload**   | Unparseable stdin: `{ corrupt json payload !!`  | Log warning to stderr; return canonical allow; exit code 0         | Warning logged to stderr; returned `{"decision":"allow"}` | `VERIFIED` |
+| **Unknown Hook Event**       | Invalid event: `--event UnknownInvalidEvent`    | Log error to stderr; return safe `{}`; exit code 0                 | Error logged to stderr; returned `{}`                     | `VERIFIED` |
+| **State File Missing**       | Fresh session with no pre-existing state        | Initialize default session state safely; allocate seq 0            | Initialized cleanly; allocated sequence 0                 | `VERIFIED` |
+| **Corrupted State File**     | State file contains garbage bytes               | Evict / fallback safely without process termination                | Handled safely with exit code 0                           | `VERIFIED` |
+| **User Cancellation**        | `terminationReason: "USER_CANCELED"`            | Map to `task.failed (USER_CANCELED)` & `session.ended (cancelled)` | Emitted cancelled events; returned `{"decision":""}`      | `VERIFIED` |
 
 ---
 
 ## 9. Cleanup Verification
 
 Following the live test:
+
 1. **Background Processes**: IPC listener daemon cancelled via `manage_task` (PID terminated cleanly).
 2. **Temporary Workspace**: Directory `/home/zyan/Projects/aoe-live-test/` completely deleted.
 3. **Runtime Sockets & Locks**: Verified zero dangling socket files or `.lock` files in `/run/user/1000/`.

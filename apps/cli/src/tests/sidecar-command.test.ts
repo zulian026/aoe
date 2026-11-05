@@ -62,6 +62,16 @@ describe('aoe sidecar CLI command', () => {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   });
 
+  it('discoverActiveSocket returns null safely when no socket exists in directory', () => {
+    const emptyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aoe-empty-dir-'));
+    try {
+      const found = discoverActiveSocket(emptyDir);
+      expect(found).toBeNull();
+    } finally {
+      fs.rmSync(emptyDir, { recursive: true, force: true });
+    }
+  });
+
   it('connects to active socket with --once --json and outputs machine-readable JSON snapshot', async () => {
     const sockPath = path.join(tmpDir, 'aoe-test-once-json.sock');
     let clientConn: net.Socket | null = null;

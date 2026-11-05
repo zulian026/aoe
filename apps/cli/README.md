@@ -12,11 +12,18 @@ The official command-line interface executable for AOE (Agent Output Enhancement
 # Global installation
 npm install -g @zyanx04/cli
 
+# Direct execution via npx
+npx @zyanx04/cli doctor
+
 # Local project installation
 npm install -D @zyanx04/cli
 # or
 pnpm add -D @zyanx04/cli
 ```
+
+> [!IMPORTANT]
+> Always execute via `npx @zyanx04/cli` or global `aoe` after installing `@zyanx04/cli`.
+> Do **NOT** invoke `npx aoe`, as the unqualified package `aoe` on the public npm registry belongs to an unrelated legacy package from 2017.
 
 ## Commands
 
@@ -42,6 +49,24 @@ agent-run | aoe pipe
 cat claude-hook.json | aoe pipe --agent claude-code
 cat gemini-hook.json | aoe pipe --agent gemini-cli
 cat stream.jsonl | aoe pipe --agent generic-jsonl
+```
+
+### `aoe bridge`
+
+Executes the non-blocking hook bridge translating agent lifecycle events into canonical protocol events:
+
+```bash
+aoe bridge --event PreToolUse < hook-payload.json
+```
+
+### `aoe sidecar`
+
+Attaches an independent terminal sidecar presentation layer to monitor active agent sessions in real time:
+
+```bash
+aoe sidecar
+aoe sidecar --listen --socket /tmp/aoe-session.sock
+aoe sidecar --once --json
 ```
 
 ### `aoe theme`

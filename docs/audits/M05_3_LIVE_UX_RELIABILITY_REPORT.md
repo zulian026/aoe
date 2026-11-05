@@ -18,43 +18,44 @@ Unlike M05.1 and M05.2 which verified consumer foundation and Ink UI presentatio
 
 ### Verification Classification Matrix
 
-| Target Scope | Classification | Verification Method & Observed Evidence |
-|---|---|---|
-| **Live Antigravity Runtime Integration** | `VERIFIED` | Real `agy` CLI turn executed in `/home/zyan/Projects/aoe-live-m05-3/`. Hook child processes (`SessionStart`, `PreInvocation`, `PreToolUse`, `PostToolUse`, `Stop`) streamed 13 events over IPC socket to live sidecar; 74 KB PTY terminal buffer captured. |
-| **Interactive Ink UI Reactive Streaming** | `VERIFIED` | Ink UI rendered in active PTY master/slave. Updated reactively across 5 turns: `turn_0` through `turn_2`, tool states (`write_file`, `run_command`), and final session status. |
-| **Progress Value Integrity** | `VERIFIED` | UI verified to derive progress solely from canonical events (`isEstimate: true`, `completedWork: 1`). Indeterminate progress rendered with qualitative status text (`Active · executing task instructions`); zero arbitrary percentage bars fabricated. |
-| **Verification Evidence Invariant** | `VERIFIED` | Evaluated single-check verification policy. File creation (`write_file`) recorded file evidence (`verifiedOnDisk: true`) but left task verification as `UNVERIFIED`. Verified that `VERIFIED` badge strictly requires passed canonical test assertions. |
-| **Lifecycle & Session Scoping** | `VERIFIED` | Tested clean session completion, tool failure (`task.failed` + `[FAILED]`), and user cancellation (`USER_CANCELED` + `[UNKNOWN]`). Confirmed `activeTaskId` cleared upon `session.ended` with zero leakage into subsequent sessions. |
-| **Multi-Width Terminal Rendering** | `VERIFIED` | Rendered across 60, 80, 100, 120, and 160 columns. 0 overflow lines detected across all widths. Narrow layout threshold (< 110 cols) cleanly stacks panels vertically; wide layout (≥ 110 cols) renders two-column layout. |
-| **Stress & Event Burst Resilience** | `VERIFIED` | Streamed 500 events over socket. Processed in 35.75 ms (~13,985 events/sec) with p50 latency of 0.006 ms (6 µs) and max latency of 0.065 ms. Memory RSS increased by only 8.88 MB. |
-| **Anomaly & Malformation Safeguards** | `VERIFIED` | Injected corrupt JSON frames, sequence gaps (`seq 5` after `seq 0`), duplicates, and out-of-order events. Rejected corrupt frames safely; detected all anomalies and exposed them in stream health diagnostics without crashing. |
-| **Ephemeral Reconnections** | `VERIFIED` | Sustained 20 consecutive ephemeral client socket connections and disconnections without dropping frames or corrupting state. |
-| **Security & Privacy Invariants** | `VERIFIED` | Verified socket file created with `0600` permissions (restricted to current user UID). Zero chain-of-thought or private scratchpad exposure. Sidecar confirmed 100% read-only with no automatic tool execution. |
-| **Workspace Regression Integrity** | `VERIFIED` | Full monorepo regression suite: 56 test files, 437 passing tests (0 failures). |
+| Target Scope                              | Classification | Verification Method & Observed Evidence                                                                                                                                                                                                                    |
+| ----------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Live Antigravity Runtime Integration**  | `VERIFIED`     | Real `agy` CLI turn executed in `/home/zyan/Projects/aoe-live-m05-3/`. Hook child processes (`SessionStart`, `PreInvocation`, `PreToolUse`, `PostToolUse`, `Stop`) streamed 13 events over IPC socket to live sidecar; 74 KB PTY terminal buffer captured. |
+| **Interactive Ink UI Reactive Streaming** | `VERIFIED`     | Ink UI rendered in active PTY master/slave. Updated reactively across 5 turns: `turn_0` through `turn_2`, tool states (`write_file`, `run_command`), and final session status.                                                                             |
+| **Progress Value Integrity**              | `VERIFIED`     | UI verified to derive progress solely from canonical events (`isEstimate: true`, `completedWork: 1`). Indeterminate progress rendered with qualitative status text (`Active · executing task instructions`); zero arbitrary percentage bars fabricated.    |
+| **Verification Evidence Invariant**       | `VERIFIED`     | Evaluated single-check verification policy. File creation (`write_file`) recorded file evidence (`verifiedOnDisk: true`) but left task verification as `UNVERIFIED`. Verified that `VERIFIED` badge strictly requires passed canonical test assertions.    |
+| **Lifecycle & Session Scoping**           | `VERIFIED`     | Tested clean session completion, tool failure (`task.failed` + `[FAILED]`), and user cancellation (`USER_CANCELED` + `[UNKNOWN]`). Confirmed `activeTaskId` cleared upon `session.ended` with zero leakage into subsequent sessions.                       |
+| **Multi-Width Terminal Rendering**        | `VERIFIED`     | Rendered across 60, 80, 100, 120, and 160 columns. 0 overflow lines detected across all widths. Narrow layout threshold (< 110 cols) cleanly stacks panels vertically; wide layout (≥ 110 cols) renders two-column layout.                                 |
+| **Stress & Event Burst Resilience**       | `VERIFIED`     | Streamed 500 events over socket. Processed in 35.75 ms (~13,985 events/sec) with p50 latency of 0.006 ms (6 µs) and max latency of 0.065 ms. Memory RSS increased by only 8.88 MB.                                                                         |
+| **Anomaly & Malformation Safeguards**     | `VERIFIED`     | Injected corrupt JSON frames, sequence gaps (`seq 5` after `seq 0`), duplicates, and out-of-order events. Rejected corrupt frames safely; detected all anomalies and exposed them in stream health diagnostics without crashing.                           |
+| **Ephemeral Reconnections**               | `VERIFIED`     | Sustained 20 consecutive ephemeral client socket connections and disconnections without dropping frames or corrupting state.                                                                                                                               |
+| **Security & Privacy Invariants**         | `VERIFIED`     | Verified socket file created with `0600` permissions (restricted to current user UID). Zero chain-of-thought or private scratchpad exposure. Sidecar confirmed 100% read-only with no automatic tool execution.                                            |
+| **Workspace Regression Integrity**        | `VERIFIED`     | Full monorepo regression suite: 56 test files, 437 passing tests (0 failures).                                                                                                                                                                             |
 
 ---
 
 ## 2. Environment & Version Baseline
 
-| Component | Value | Notes |
-|---|---|---|
-| **OS Environment** | Linux x86_64 (Kernel 6.17) | POSIX UNIX Domain Socket runtime |
-| **Node.js Runtime** | `v26.13.0` | Native ESM support |
-| **Package Manager** | `pnpm 10.28.2` | Monorepo workspace |
-| **Antigravity CLI** | `1.5.0` (`/home/zyan/.local/bin/agy`) | Installed production binary |
-| **Antigravity Model** | `gemini-3.8-flash-high` | Live inference agent model |
-| **AOE Protocol** | `v1.0.0` | Canonical schema validation |
-| **UI Framework** | Ink v5 + React 18 + Yoga Layout | Terminal presentation engine |
-| **Global Config Status** | Completely untouched | `~/.gemini/antigravity-cli/settings.json` intact |
+| Component                | Value                                 | Notes                                            |
+| ------------------------ | ------------------------------------- | ------------------------------------------------ |
+| **OS Environment**       | Linux x86_64 (Kernel 6.17)            | POSIX UNIX Domain Socket runtime                 |
+| **Node.js Runtime**      | `v26.13.0`                            | Native ESM support                               |
+| **Package Manager**      | `pnpm 10.28.2`                        | Monorepo workspace                               |
+| **Antigravity CLI**      | `1.5.0` (`/home/zyan/.local/bin/agy`) | Installed production binary                      |
+| **Antigravity Model**    | `gemini-3.8-flash-high`               | Live inference agent model                       |
+| **AOE Protocol**         | `v1.0.0`                              | Canonical schema validation                      |
+| **UI Framework**         | Ink v5 + React 18 + Yoga Layout       | Terminal presentation engine                     |
+| **Global Config Status** | Completely untouched                  | `~/.gemini/antigravity-cli/settings.json` intact |
 
 ---
 
 ## 3. Defects Discovered and Fixes Applied
 
-During Milestone M05.3 live execution, one architectural gap and one visual layout defect were identified and corrected in accordance with Milestone Constraint 8 (*"Fix only defects directly within the M05.3 scope. If a source change is necessary, preserve existing behavior and add regression tests"*):
+During Milestone M05.3 live execution, one architectural gap and one visual layout defect were identified and corrected in accordance with Milestone Constraint 8 (_"Fix only defects directly within the M05.3 scope. If a source change is necessary, preserve existing behavior and add regression tests"_):
 
 ### Defect 1: Sidecar Consumer IPC Server Missing for Ephemeral Producer Hooks
-- **Finding**: In M05.1, `SidecarIpcClient` was implemented exclusively as a socket *client* calling `net.createConnection`. In Antigravity desktop/CLI environments, hooks are spawned by the agent engine as ephemeral child processes (`aoe bridge --event <name>`) that connect to a socket, emit events, and terminate within <50ms. Neither `aoe bridge` nor `aoe sidecar` hosted the socket server, causing connection errors (`ENOENT`).
+
+- **Finding**: In M05.1, `SidecarIpcClient` was implemented exclusively as a socket _client_ calling `net.createConnection`. In Antigravity desktop/CLI environments, hooks are spawned by the agent engine as ephemeral child processes (`aoe bridge --event <name>`) that connect to a socket, emit events, and terminate within <50ms. Neither `aoe bridge` nor `aoe sidecar` hosted the socket server, causing connection errors (`ENOENT`).
 - **Fix**:
   1. Implemented `SidecarIpcServer` in [`packages/core/src/sidecar/ipc-server.ts`](file:///home/zyan/Projects/aoe/packages/core/src/sidecar/ipc-server.ts) using standard `net.createServer` with automatic socket unlinking and strict `0600` POSIX file permissions.
   2. Extended `SidecarConsumer` in [`packages/core/src/sidecar/sidecar-consumer.ts`](file:///home/zyan/Projects/aoe/packages/core/src/sidecar/sidecar-consumer.ts) with `mode?: 'client' | 'server'` (defaulting to `'client'` for 100% backward compatibility with all existing test suites).
@@ -62,6 +63,7 @@ During Milestone M05.3 live execution, one architectural gap and one visual layo
 - **Verification**: Verified with new unit test in `packages/core/src/tests/sidecar-ipc-consumer.test.ts` and CLI test in `apps/cli/src/tests/sidecar-command.test.ts`.
 
 ### Defect 2: Two-Column Layout Overflow on 100-Column Terminals
+
 - **Finding**: In `SidecarApp.tsx`, `isNarrow` was configured as `columns < 100`. At exactly 100 columns, the app attempted a two-column split (`58 cols` left + `41 cols` right). Because borders and paddings consume 4 columns per box, the interior right column width was restricted to ~36 columns, causing long paths in `ActivityTimeline` and `FileChangesPanel` to wrap awkwardly across borders.
 - **Fix**: Adjusted narrow threshold in [`packages/renderer/src/sidecar/SidecarApp.tsx`](file:///home/zyan/Projects/aoe/packages/renderer/src/sidecar/SidecarApp.tsx) to `isNarrow = columns < 110`. Terminals below 110 columns now stack vertically, providing full horizontal width for all panels.
 - **Verification**: Verified via `test_terminal_widths.py`: 0 overflow lines across 60, 80, 100, 120, and 160 columns.
@@ -190,15 +192,16 @@ The verification policy enforces strict boundaries between unverified, file-writ
 
 The interactive sidecar was verified across five standard terminal dimensions using ESM string rendering (`renderToStringSidecarApp`):
 
-| Columns | Max Rendered Width | Overflow Count | Total Lines | Layout Mode | Verification |
-|:---:|:---:|:---:|:---:|:---:|:---:|
-| **60** | 60 | 0 | 49 | Stacked Vertical (Single Column) | `VERIFIED` |
-| **80** | 80 | 0 | 46 | Stacked Vertical (Single Column) | `VERIFIED` |
-| **100** | 100 | 0 | 40 | Stacked Vertical (Single Column) | `VERIFIED` |
-| **120** | 120 | 0 | 34 | Side-by-Side (2 Columns: 69 / 49) | `VERIFIED` |
-| **160** | 160 | 0 | 32 | Side-by-Side (2 Columns: 92 / 65) | `VERIFIED` |
+| Columns | Max Rendered Width | Overflow Count | Total Lines |            Layout Mode            | Verification |
+| :-----: | :----------------: | :------------: | :---------: | :-------------------------------: | :----------: |
+| **60**  |         60         |       0        |     49      | Stacked Vertical (Single Column)  |  `VERIFIED`  |
+| **80**  |         80         |       0        |     46      | Stacked Vertical (Single Column)  |  `VERIFIED`  |
+| **100** |        100         |       0        |     40      | Stacked Vertical (Single Column)  |  `VERIFIED`  |
+| **120** |        120         |       0        |     34      | Side-by-Side (2 Columns: 69 / 49) |  `VERIFIED`  |
+| **160** |        160         |       0        |     32      | Side-by-Side (2 Columns: 92 / 65) |  `VERIFIED`  |
 
 ### Observed Layout Invariants
+
 - **No Horizontal Overflow**: 0 lines exceeded the terminal width across all 5 test scenarios.
 - **No Broken Box Borders**: Box drawing characters (`╭`, `╮`, `╰`, `╯`, `│`, `─`) remain aligned and unbroken.
 - **Responsive Stacking**: Terminals with `< 110` columns automatically stack timeline, verification, and file panels vertically, ensuring full readability without truncated file paths.

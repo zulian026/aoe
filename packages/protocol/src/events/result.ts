@@ -5,7 +5,7 @@ import { RESULT_CATEGORIES } from '../constants.js';
 export const ResultProducedPayloadSchema = z.object({
   category: z.enum(RESULT_CATEGORIES),
   title: z.string().min(1, 'title is required'),
-  data: z.record(z.unknown()),
+  data: z.record(z.string(), z.unknown()),
   artifactPath: z.string().optional(),
   taskId: z.string().optional(),
 });

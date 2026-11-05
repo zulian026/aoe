@@ -55,7 +55,8 @@ export class AntigravitySessionStore {
 
   constructor(sessionId?: string, baseDir?: string) {
     this.safeId = sanitizeSessionId(sessionId);
-    this.sessionId = typeof sessionId === 'string' && sessionId.trim().length > 0 ? sessionId.trim() : 'default';
+    this.sessionId =
+      typeof sessionId === 'string' && sessionId.trim().length > 0 ? sessionId.trim() : 'default';
 
     const dir = baseDir ?? getSessionStorageDir();
     this.statePath = path.join(dir, `aoe-state-${this.safeId}.json`);
@@ -229,7 +230,7 @@ export class AntigravitySessionStore {
   }
 
   /**
-   * Writes state atomically via temporary file and rename.
+   * Writes state atomically via temporary file and rename with strict 0o600 permissions.
    */
   private writeStateUnsafe(state: PersistentSessionState): void {
     state.lastUpdatedAt = new Date().toISOString();
@@ -237,8 +238,15 @@ export class AntigravitySessionStore {
     const payload = JSON.stringify(state, null, 2);
 
     try {
-      fs.writeFileSync(tempFile, payload, 'utf-8');
+      fs.writeFileSync(tempFile, payload, { mode: 0o600, encoding: 'utf-8' });
       fs.renameSync(tempFile, this.statePath);
+      if (process.platform !== 'win32') {
+        try {
+          fs.chmodSync(this.statePath, 0o600);
+        } catch {
+          // Ignore chmod error if filesystem does not support it
+        }
+      }
     } catch (err) {
       try {
         if (fs.existsSync(tempFile)) {
@@ -272,7 +280,9 @@ export class AntigravitySessionStore {
     // Force acquire if lock timed out
     this.releaseLock();
     if (!this.tryCreateLock()) {
-      throw new Error(`Failed to acquire lock for session "${this.sessionId}" after ${timeoutMs}ms`);
+      throw new Error(
+        `Failed to acquire lock for session "${this.sessionId}" after ${timeoutMs}ms`,
+      );
     }
   }
 
@@ -298,15 +308,24 @@ export class AntigravitySessionStore {
 
     this.releaseLock();
     if (!this.tryCreateLock()) {
-      throw new Error(`Failed to acquire lock sync for session "${this.sessionId}" after ${timeoutMs}ms`);
+      throw new Error(
+        `Failed to acquire lock sync for session "${this.sessionId}" after ${timeoutMs}ms`,
+      );
     }
   }
 
   private tryCreateLock(): boolean {
     try {
-      const fd = fs.openSync(this.lockPath, 'wx');
+      const fd = fs.openSync(this.lockPath, 'wx', 0o600);
       fs.writeSync(fd, `${process.pid}\n${Date.now()}\n`);
       fs.closeSync(fd);
+      if (process.platform !== 'win32') {
+        try {
+          fs.chmodSync(this.lockPath, 0o600);
+        } catch {
+          // Ignore chmod error
+        }
+      }
       return true;
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException).code === 'EEXIST') {

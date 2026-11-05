@@ -22,7 +22,7 @@ All contributors and participants are expected to adhere to our [Code of Conduct
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/aoe-dev/aoe.git
+git clone https://github.com/zulian026/aoe.git
 cd aoe
 
 # 2. Install dependencies across workspaces

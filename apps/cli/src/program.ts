@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { Command } from 'commander';
 import { PROTOCOL_VERSION } from '@zyanx04/protocol';
 import { registerRenderCommand } from './commands/render.js';
@@ -10,7 +11,23 @@ import { registerSidecarCommand } from './commands/sidecar.js';
 import { formatErrorOutput } from './utils/errors.js';
 import { ExitCode } from './runtime/exit-codes.js';
 
-export const CLI_VERSION = '0.1.1';
+declare const __CLI_VERSION__: string | undefined;
+
+function resolveCliVersion(): string {
+  if (typeof __CLI_VERSION__ !== 'undefined' && __CLI_VERSION__.length > 0) {
+    return __CLI_VERSION__;
+  }
+  try {
+    const pkgUrl = new URL('../package.json', import.meta.url);
+    const content = fs.readFileSync(pkgUrl, 'utf-8');
+    const parsed = JSON.parse(content) as { version?: string };
+    return parsed.version ?? '0.1.2';
+  } catch {
+    return '0.1.2';
+  }
+}
+
+export const CLI_VERSION = resolveCliVersion();
 
 export function createProgram(): Command {
   const program = new Command();

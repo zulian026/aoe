@@ -77,7 +77,10 @@ export class AntigravityMapper {
    * Requires explicit declaration via parameter or hookEventName property.
    * Rejects ambiguous or unknown events with a controlled error.
    */
-  public resolveEventName(rec: Record<string, unknown>, explicit?: string): AntigravityHookEventName {
+  public resolveEventName(
+    rec: Record<string, unknown>,
+    explicit?: string,
+  ): AntigravityHookEventName {
     const candidate =
       explicit ??
       (typeof rec.hookEventName === 'string'
@@ -186,11 +189,12 @@ export class AntigravityMapper {
     store?: AntigravitySessionStore,
   ): AoeEvent[] {
     const invocationNum = Number(rec.invocationNum ?? rec.invocation_num ?? 1);
-    const rawUserInput = typeof rec.lastUserInput === 'string'
-      ? rec.lastUserInput
-      : typeof rec.last_user_input === 'string'
-        ? rec.last_user_input
-        : undefined;
+    const rawUserInput =
+      typeof rec.lastUserInput === 'string'
+        ? rec.lastUserInput
+        : typeof rec.last_user_input === 'string'
+          ? rec.last_user_input
+          : undefined;
 
     const taskId = store
       ? store.mapTaskIdSync(`turn_${invocationNum}`)
@@ -346,7 +350,8 @@ export class AntigravityMapper {
           if (store) {
             store.recordEvidenceSync(evidence);
           } else {
-            const list = (session.metadata['verification_evidence'] as VerificationEvidence[]) || [];
+            const list =
+              (session.metadata['verification_evidence'] as VerificationEvidence[]) || [];
             list.push(evidence);
             session.metadata['verification_evidence'] = list;
           }
@@ -357,7 +362,11 @@ export class AntigravityMapper {
     }
 
     // Only emit file.changed when the payload provides sufficient evidence of an actual change
-    if (toolName === 'write_file' && typeof toolArgs.Path === 'string' && toolArgs.Path.length > 0) {
+    if (
+      toolName === 'write_file' &&
+      typeof toolArgs.Path === 'string' &&
+      toolArgs.Path.length > 0
+    ) {
       const action = toolArgs.Append === true ? 'MODIFIED' : 'CREATED';
       const fileEvent: FileChangedEvent = {
         protocolVersion: PROTOCOL_VERSION,
@@ -461,7 +470,9 @@ export class AntigravityMapper {
     session: AdapterSession,
     store?: AntigravitySessionStore,
   ): AoeEvent[] {
-    const terminationReason = String(rec.terminationReason ?? rec.termination_reason ?? 'NO_TOOL_CALL');
+    const terminationReason = String(
+      rec.terminationReason ?? rec.termination_reason ?? 'NO_TOOL_CALL',
+    );
     const taskId =
       store?.getActiveTaskIdSync() ??
       (session.metadata['current_turn_task_id'] as string) ??
@@ -543,9 +554,10 @@ export class AntigravityMapper {
 
     // Invariant: Do not automatically classify Stop as successful completion.
     // Never emit task.completed without verified evidence bound to this specific task.
-    const metaVerified = rec.metadata && typeof rec.metadata === 'object'
-      ? (rec.metadata as Record<string, unknown>).verified === true
-      : rec.verified === true;
+    const metaVerified =
+      rec.metadata && typeof rec.metadata === 'object'
+        ? (rec.metadata as Record<string, unknown>).verified === true
+        : rec.verified === true;
 
     const hasVerifiedEvidence =
       metaVerified ||

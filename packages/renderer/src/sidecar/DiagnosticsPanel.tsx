@@ -67,7 +67,9 @@ export const DiagnosticsPanel: React.FC<DiagnosticsPanelProps> = ({
           </Box>
           {sequenceStats ? (
             <Text color={mutedColor}>
-              {sequenceStats.totalEventsReceived} events processed | {sequenceStats.gapCount} gap(s) | {sequenceStats.duplicateCount} duplicate(s) | {sequenceStats.outOfOrderCount} out-of-order
+              {sequenceStats.totalEventsReceived} events processed | {sequenceStats.gapCount} gap(s)
+              | {sequenceStats.duplicateCount} duplicate(s) | {sequenceStats.outOfOrderCount}{' '}
+              out-of-order
             </Text>
           ) : (
             <Text color={mutedColor}>Monitoring protocol event stream</Text>
@@ -79,11 +81,7 @@ export const DiagnosticsPanel: React.FC<DiagnosticsPanelProps> = ({
           <Box flexDirection="column" marginTop={1}>
             {visibleDiagnostics.map((d, idx) => {
               const levelColor =
-                d.level === 'error'
-                  ? errorColor
-                  : d.level === 'warning'
-                    ? warningColor
-                    : infoColor;
+                d.level === 'error' ? errorColor : d.level === 'warning' ? warningColor : infoColor;
               const badge = `[${d.level.toUpperCase()}]`;
 
               return (
