@@ -93,6 +93,9 @@ jobs:
       - name: Audit production dependencies
         run: pnpm audit --prod
 
+      - name: Build monorepo
+        run: pnpm build
+
       - name: Run linter
         run: pnpm lint
 
@@ -101,9 +104,6 @@ jobs:
 
       - name: Run tests
         run: pnpm test
-
-      - name: Build monorepo
-        run: pnpm build
 
       - name: Verify Clean Installation
         run: ./scripts/verify-clean-install.sh
