@@ -165,12 +165,25 @@ jobs:
                   iss: payload.iss
                 }, null, 2));
               ' "$RAW_JWT"
-              echo "Testing exchange with npmjs.org for @zyanx04/protocol..."
-              EXCHANGE_RESP=$(curl -sS -w "\nHTTP_STATUS:%{http_code}\n" \
-                -X POST "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/%40zyanx04%2Fprotocol" \
-                -H "Content-Type: application/json" \
-                -H "Authorization: Bearer $RAW_JWT")
-              echo "Exchange Response: $EXCHANGE_RESP"
+
+              echo "Testing OIDC exchange across all 7 packages:"
+              PACKAGES=(
+                "@zyanx04/protocol"
+                "@zyanx04/themes"
+                "@zyanx04/core"
+                "@zyanx04/components"
+                "@zyanx04/adapters"
+                "@zyanx04/renderer"
+                "@zyanx04/cli"
+              )
+              for pkg in "${PACKAGES[@]}"; do
+                escaped=$(node -e "console.log(encodeURIComponent('$pkg'))")
+                resp=$(curl -sS -w "\nHTTP_STATUS:%{http_code}" \
+                  -X POST "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/$escaped" \
+                  -H "Content-Type: application/json" \
+                  -H "Authorization: Bearer $RAW_JWT")
+                echo "Package $pkg -> $(echo "$resp" | tr '\n' ' ')"
+              done
             else
               echo "ERROR: Failed to obtain JWT from GitHub Actions: $TOKEN_RESP"
             fi
