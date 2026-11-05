@@ -143,52 +143,6 @@ jobs:
 
       - name: Publish to npm (OIDC Trusted Publishing)
         run: |
-          echo "=== Debugging OIDC Token Exchange ==="
-          if [[ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" && -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]]; then
-            echo "Requesting GitHub OIDC Token for audience npm:registry.npmjs.org..."
-            TOKEN_RESP=$(curl -sS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=npm:registry.npmjs.org")
-            RAW_JWT=$(node -e 'console.log(JSON.parse(process.argv[1]).value || "")' "$TOKEN_RESP")
-            if [[ -n "$RAW_JWT" ]]; then
-              echo "Decoded GitHub OIDC Claims:"
-              node -e '
-                const parts = process.argv[1].split(".");
-                const payload = JSON.parse(Buffer.from(parts[1], "base64").toString("utf8"));
-                console.log(JSON.stringify({
-                  repository: payload.repository,
-                  repository_owner: payload.repository_owner,
-                  job_workflow_ref: payload.job_workflow_ref,
-                  ref: payload.ref,
-                  ref_type: payload.ref_type,
-                  event_name: payload.event_name,
-                  environment: payload.environment,
-                  aud: payload.aud,
-                  iss: payload.iss
-                }, null, 2));
-              ' "$RAW_JWT"
-
-              echo "Testing OIDC exchange across all 7 packages:"
-              PACKAGES=(
-                "@zyanx04/protocol"
-                "@zyanx04/themes"
-                "@zyanx04/core"
-                "@zyanx04/components"
-                "@zyanx04/adapters"
-                "@zyanx04/renderer"
-                "@zyanx04/cli"
-              )
-              for pkg in "${PACKAGES[@]}"; do
-                escaped=$(node -e "console.log(encodeURIComponent('$pkg'))")
-                resp=$(curl -sS -w "\nHTTP_STATUS:%{http_code}" \
-                  -X POST "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/$escaped" \
-                  -H "Content-Type: application/json" \
-                  -H "Authorization: Bearer $RAW_JWT")
-                echo "Package $pkg -> $(echo "$resp" | tr '\n' ' ')"
-              done
-            else
-              echo "ERROR: Failed to obtain JWT from GitHub Actions: $TOKEN_RESP"
-            fi
-          fi
-
           echo "=== Publishing Release Tarballs via npm OIDC Trusted Publishing ==="
           ORDER=(
             "zyanx04-protocol-0.1.2.tgz"
@@ -201,7 +155,7 @@ jobs:
           )
           for tarball in "${ORDER[@]}"; do
             echo "--> Publishing $GITHUB_WORKSPACE/release-artifacts/$tarball via npm OIDC..."
-            npm publish "$GITHUB_WORKSPACE/release-artifacts/$tarball" --access public --provenance --verbose
+            npm publish "$GITHUB_WORKSPACE/release-artifacts/$tarball" --access public --provenance
             echo "✓ Successfully published $tarball"
             sleep 2
           done
