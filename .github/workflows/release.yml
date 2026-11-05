@@ -4,9 +4,15 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Git tag to release (e.g. v0.1.2)'
+        required: true
+        default: 'v0.1.2'
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ github.workflow }}-${{ inputs.release_tag || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -18,13 +24,52 @@ jobs:
       id-token: write
 
     steps:
-      - name: Checkout repository
+      - name: Resolve and validate target ref
+        id: target
+        run: |
+          TARGET_TAG="${{ inputs.release_tag || github.ref_name }}"
+          echo "target_tag=$TARGET_TAG" >> "$GITHUB_OUTPUT"
+          echo "=== Release Target Resolution ==="
+          echo "Target tag: $TARGET_TAG"
+          if [[ ! "$TARGET_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "ERROR: Target tag '$TARGET_TAG' does not match semver format v*.*.*"
+            exit 1
+          fi
+
+      - name: Checkout repository at target release tag
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.target.outputs.target_tag }}
+
+      - name: Verify release commit and package consistency
+        run: |
+          echo "=== Release Target Verification ==="
+          RESOLVED_COMMIT=$(git rev-parse HEAD)
+          echo "Checked out commit: $RESOLVED_COMMIT"
+          if [[ "${{ steps.target.outputs.target_tag }}" == "v0.1.2" ]]; then
+            EXPECTED_COMMIT="5e98b3f73067215fa4a223fd86b1be4151e491f9"
+            if [[ "$RESOLVED_COMMIT" != "$EXPECTED_COMMIT" ]]; then
+              echo "ERROR: v0.1.2 resolved commit mismatch! Expected $EXPECTED_COMMIT, got $RESOLVED_COMMIT"
+              exit 1
+            fi
+            echo "PASS: Checked out commit exactly matches approved v0.1.2 release commit ($EXPECTED_COMMIT)"
+          fi
+          node -e '
+            const fs = require("fs");
+            const pkgs = ["protocol", "themes", "core", "components", "adapters", "renderer", "cli"];
+            for (const p of pkgs) {
+              const dir = p === "cli" ? "apps/cli" : "packages/" + p;
+              const pkg = JSON.parse(fs.readFileSync(dir + "/package.json", "utf8"));
+              if (pkg.version !== "0.1.2") {
+                console.error(`ERROR: ${pkg.name} version is ${pkg.version}, expected 0.1.2`);
+                process.exit(1);
+              }
+              console.log(`Verified ${pkg.name}@${pkg.version}`);
+            }
+          '
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Set up Node.js 22.x LTS
         uses: actions/setup-node@v4
@@ -87,8 +132,9 @@ jobs:
 
       - name: Create GitHub Release (Draft)
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
+          tag_name: ${{ steps.target.outputs.target_tag }}
+          name: AOE ${{ steps.target.outputs.target_tag }}
           draft: true
           files: |
             release-artifacts/*.tgz
