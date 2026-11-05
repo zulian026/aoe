@@ -137,8 +137,8 @@ jobs:
             "zyanx04-cli-0.1.2.tgz"
           )
           for tarball in "${ORDER[@]}"; do
-            echo "--> Dry-run publishing release-artifacts/$tarball..."
-            npm publish "release-artifacts/$tarball" --access public --dry-run
+            echo "--> Dry-run publishing $GITHUB_WORKSPACE/release-artifacts/$tarball..."
+            npm publish "$GITHUB_WORKSPACE/release-artifacts/$tarball" --access public --dry-run
           done
 
       - name: Publish to npm (OIDC Trusted Publishing)
@@ -154,8 +154,8 @@ jobs:
             "zyanx04-cli-0.1.2.tgz"
           )
           for tarball in "${ORDER[@]}"; do
-            echo "--> Publishing release-artifacts/$tarball via npm OIDC..."
-            npm publish "release-artifacts/$tarball" --access public --provenance
+            echo "--> Publishing $GITHUB_WORKSPACE/release-artifacts/$tarball via npm OIDC..."
+            npm publish "$GITHUB_WORKSPACE/release-artifacts/$tarball" --access public --provenance
             echo "✓ Successfully published $tarball"
             sleep 2
           done
